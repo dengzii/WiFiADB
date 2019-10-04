@@ -1,0 +1,40 @@
+<idea-plugin url="https://github.com/MrDenua/WiFiADB">
+  <id>com.your.company.unique.plugin.id</id>
+  <name>Android WiFiADB</name>
+  <version>1.0</version>
+  <vendor email="denua@foxmail.com" url="https://dengzii.com">dengzi</vendor>
+
+  <description><![CDATA[
+      An plugin use for connect android device by WiFi.<br>
+    ]]></description>
+
+  <change-notes><![CDATA[
+      An plugin use for connect android device by WiFi.<br>
+    ]]>
+  </change-notes>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+  <idea-version since-build="173.0"/>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+       on how to target different products -->
+  <!-- uncomment to enable plugin in all products
+  <depends>com.intellij.modules.lang</depends>
+  -->
+  <depends>com.intellij.modules.all</depends>
+  <depends>org.jetbrains.kotlin</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- Add your extensions here -->
+  </extensions>
+
+  <actions>
+    <!-- Add your actions here -->
+    <action id="com.dengzii.plugin.adb.MainAction" class="com.dengzii.plugin.adb.MainAction" text="WiFiAdb"
+            description="Connect android device by wifi">
+      <add-to-group group-id="NavBarToolBar" anchor="last"/>
+      <keyboard-shortcut keymap="$default" first-keystroke="shift ctrl alt 2"/>
+    </action>
+  </actions>
+
+</idea-plugin>
