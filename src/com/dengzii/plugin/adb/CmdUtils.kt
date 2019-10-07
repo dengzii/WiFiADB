@@ -20,7 +20,7 @@ object CmdUtils {
     fun main(args: Array<String>) {
         exec("adb devices", object : CmdListener {
             override fun onExecuted(success: Boolean, code: Int, msg: String) {
-                println(msg)
+                println("==$msg==")
             }
         })
     }

@@ -11,18 +11,54 @@ package com.dengzii.plugin.adb
  */
 object AdbUtils {
 
+    private const val CMD_LIST_DEVICES = "adb devices -l"
 
-    fun getConnectedDeviceList(): List<String> {
+    private const val LIST_OF_DEVICES_ATTACHED = "List of devices attached"
+    private const val SPACE = " "
+    private const val NEW_LINE = "\n"
 
-        CmdUtils.exec("adb devices -l", object : CmdUtils.CmdListener {
-            override fun onExecuted(success: Boolean, code: Int, msg: String) {
-
+    @JvmStatic
+    fun main(args: Array<String>) {
+        getConnectedDeviceList(object :DeviceListListener{
+            override fun onDeviceList(list:  List<Device>) {
+                print(list)
             }
         })
-        return listOf()
+    }
+
+    fun getConnectedDeviceList(deviceListListener: DeviceListListener){
+
+        CmdUtils.exec(CMD_LIST_DEVICES, object : CmdUtils.CmdListener {
+            override fun onExecuted(success: Boolean, code: Int, msg: String) {
+                val lines = msg.split(NEW_LINE).filter {
+                    !it.isBlank() && !it.contains(LIST_OF_DEVICES_ATTACHED)
+                }
+                val devices = ArrayList<Device>()
+                lines.forEach {
+                    devices.add(getDeviceFromLine(it))
+                }
+                deviceListListener.onDeviceList(devices)
+            }
+        })
+    }
+
+    private fun getDeviceFromLine(line : String) : Device{
+        val part = line.split(SPACE).filter {
+            !it.isBlank()
+        }
+        if (part.size < 4){
+            return Device("","")
+        }
+        val model = part[2].split(":")[1]
+        val modelName = part[3].split(":")[1]
+        val status = Device.STATUS.getStatus(part[1])
+        val device =  Device(part[0], model)
+        device.status = status
+        device.modelName = modelName
+        return device
     }
 
     interface DeviceListListener {
-        fun onDeviceList(): List<String>
+        fun onDeviceList(list: List<Device>)
     }
 }

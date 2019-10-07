@@ -11,19 +11,31 @@ package com.dengzii.plugin.adb
  */
 class Device() {
 
-    private lateinit var name: String
-    private lateinit var ip: String
-    private lateinit var model: String
-    private lateinit var modelName: String
-    private lateinit var port: String
-    private lateinit var status: STATUS
+    lateinit var name: String
+    lateinit var ip: String
+    lateinit var model: String
+    lateinit var modelName: String
+    lateinit var port: String
+    lateinit var status: STATUS
 
     constructor(name: String, model: String) : this() {
         this.name = name
         this.model = model
     }
 
+    override fun toString(): String {
+        return "Device{name=$name, model=$model}"
+    }
+
     enum class STATUS {
-        ONLINE, OFFLINE, DISCONNECT
+        ONLINE, OFFLINE, DISCONNECT, UNKNOWN;
+        companion object{
+            fun getStatus(status : String) = when(status) {
+                "device" -> ONLINE
+                "disconnect" -> DISCONNECT
+                "offline" -> OFFLINE
+                else -> UNKNOWN
+            }
+        }
     }
 }
