@@ -4,6 +4,7 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.net.Socket
 
 /**
  * <pre>
@@ -18,12 +19,28 @@ object CmdUtils {
 
     private const val TAG = "CmdUtils"
 
+    @JvmStatic
+    fun main(args: Array<String>) {
+        scanDevice()
+    }
+
+    fun scanDevice() {
+
+        try {
+            val socket = Socket("192.168.0.108", 5555)
+            println("Connected to " + socket.inetAddress + " on port " + socket.port + " from port " + socket.localPort + " of " + socket.localAddress);
+        }catch (e:Throwable){
+            println("not open.")
+        }
+
+    }
+
     fun adbShell(sh: String, listener: CmdListener?) {
         exec("adb shell $sh", listener)
     }
 
-    fun adbShellSync(sh: String): CmdResult {
-        return execSync("adb shell $sh")
+    fun adbShellSync(device: Device, sh: String): CmdResult {
+        return execSync("adb -s ${device.sn} shell $sh")
     }
 
     fun adbShell(device: Device, sh: String, listener: CmdListener?) {

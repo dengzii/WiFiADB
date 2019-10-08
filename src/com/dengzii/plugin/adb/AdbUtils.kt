@@ -36,16 +36,26 @@ object AdbUtils {
 
     @JvmStatic
     fun main(args: Array<String>) {
+        XLog.disable()
         getConnectedDeviceList(object : DeviceListListener {
             override fun onDeviceList(list: List<Device>) {
-                setIpAddress(list[0])
+                println(list)
+//                list[0].turnOnTcp(5555)
             }
         })
     }
 
+    fun connect(device: Device, listener: CmdListener?) {
+        CmdUtils.exec("adb connect ${device.ip}", listener)
+    }
+
+    fun turnTcp(device: Device, port: Int, listener: CmdListener?) {
+        CmdUtils.exec("adb -s ${device.sn} tcpip $port", listener)
+    }
+
     fun screenRecord(device: Device, local: String, listener: CmdListener?) {
         val filePath = "$SCREEN_RECORD_PATH${System.currentTimeMillis()}.mp4"
-        CmdUtils.adbShellSync("screenrecord " +
+        CmdUtils.adbShellSync(device, "screenrecord " +
                 " --time-limit $SCREEN_RECORD_TIME_SECOND" +
                 " --bit-rate $SCREEN_RECORD_BIT_RATE" +
                 " --verbose " +
@@ -87,6 +97,9 @@ object AdbUtils {
                 lines.forEach {
                     val device = getDeviceFromLine(it)
                     if (device != null) {
+                        if (device.ip.isBlank()) {
+                            setIpAddress(device)
+                        }
                         devices.add(device)
                     }
                 }
@@ -102,15 +115,12 @@ object AdbUtils {
     }
 
     private fun setIpAddress(device: Device) {
-        CmdUtils.adbShell(device, "ifconfig wlan0", object : CmdListener {
-            override fun onExecuted(success: Boolean, code: Int, msg: String) {
-                val matcher = PATTERN_INET_ADDR.matcher(msg)
-                if (matcher.find()) {
-                    device.ip = matcher.group(1)
-                    device.broadcastAddress = matcher.group(9)
-                }
-            }
-        })
+        val res = CmdUtils.adbShellSync(device, "ifconfig wlan0")
+        val matcher = PATTERN_INET_ADDR.matcher(res.info)
+        if (matcher.find()) {
+            device.ip = matcher.group(1)
+            device.broadcastAddress = matcher.group(9)
+        }
     }
 
     private fun getDeviceFromLine(line: String): Device? {
@@ -120,12 +130,18 @@ object AdbUtils {
         if (part.size < 4) {
             return null
         }
-        val model = part[2].split(":")[1]
-        val modelName = part[3].split(":")[1]
+        val modelName = part[2].split(":")[1]
+        val model = part[3].split(":")[1]
         val status = Device.STATUS.getStatus(part[1])
         val device = Device(part[0], model)
         device.status = status
         device.modelName = modelName
+
+        if (device.sn.contains(":")) {
+            val tcp = device.sn.split(":")
+            device.ip = tcp[0]
+            device.port = tcp[1]
+        }
         return device
     }
 

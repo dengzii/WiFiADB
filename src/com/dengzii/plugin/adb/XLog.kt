@@ -14,17 +14,38 @@ import java.util.*
  */
 object XLog {
 
+    var TURN_ON_LOG = true
+
+    fun disable(){
+        TURN_ON_LOG = false
+    }
+
+    fun enable(){
+        TURN_ON_LOG = true
+    }
+
     fun d(tag: String, log: String) {
-        println("${getTime()} $tag: $log")
+        log(false, "${getTime()} $tag: $log")
     }
 
     fun e(tag: String, e: Throwable) {
-        System.err.println("${getTime()} $tag: ${e.message}")
+        log(true, "${getTime()} $tag: ${e.message}")
         e.printStackTrace()
     }
 
     fun e(tag: String, msg: String) {
-        System.err.println("${getTime()} $tag $msg")
+        log(true, "${getTime()} $tag $msg")
+    }
+
+    private fun log(error: Boolean, log: String) {
+        if (!TURN_ON_LOG) {
+            return
+        }
+        if (error) {
+            System.err.println(log)
+        } else {
+            println(log)
+        }
     }
 
     private fun getTime(): String {

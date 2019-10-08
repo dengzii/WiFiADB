@@ -11,21 +11,33 @@ package com.dengzii.plugin.adb
  */
 class Device() {
 
-    lateinit var sn: String
-    lateinit var ip: String
-    lateinit var model: String
-    lateinit var modelName: String
-    lateinit var port: String
-    lateinit var status: STATUS
-    lateinit var broadcastAddress: String
+    var sn: String = ""
+    var ip: String = ""
+    var model: String = ""
+    var modelName: String = ""
+    var port: String = ""
+    var status: STATUS = STATUS.UNKNOWN
+    var broadcastAddress: String = ""
 
-    constructor(name: String, model: String) : this() {
-        this.sn = name
+    companion object{
+        const val TAG = "Device"
+    }
+
+    constructor(sn: String, model: String) : this() {
+        this.sn = sn
         this.model = model
     }
 
-    override fun toString(): String {
-        return "Device{name=$sn, model=$model}"
+    fun turnOnTcp(port: Int) {
+        AdbUtils.turnTcp(this, port, null)
+    }
+
+    fun connect() {
+        if (status != STATUS.ONLINE) {
+            AdbUtils.connect(this, null)
+        }else{
+            XLog.d("$TAG.connect", "device already connected.")
+        }
     }
 
     fun installApk(path: String) {
@@ -44,8 +56,19 @@ class Device() {
         AdbUtils.start(this, null)
     }
 
+
     private fun shell(cmd: String, listener: CmdListener? = null) {
         CmdUtils.adbShell(this, cmd, listener)
+    }
+
+    override fun toString(): String {
+        return "Device(sn='$sn', " +
+                "ip='$ip', " +
+                "model='$model', " +
+                "modelName='$modelName', " +
+                "port='$port', " +
+                "status=$status, " +
+                "broadcastAddress='$broadcastAddress')"
     }
 
     enum class STATUS {
