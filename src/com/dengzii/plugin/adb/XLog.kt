@@ -14,13 +14,14 @@ import java.util.*
  */
 object XLog {
 
-    var TURN_ON_LOG = true
+    private var TURN_ON_LOG = true
+    var LOG_LISTENER: LogListener? = null
 
-    fun disable(){
+    fun disable() {
         TURN_ON_LOG = false
     }
 
-    fun enable(){
+    fun enable() {
         TURN_ON_LOG = true
     }
 
@@ -41,6 +42,7 @@ object XLog {
         if (!TURN_ON_LOG) {
             return
         }
+        LOG_LISTENER?.log("", log)
         if (error) {
             System.err.println(log)
         } else {

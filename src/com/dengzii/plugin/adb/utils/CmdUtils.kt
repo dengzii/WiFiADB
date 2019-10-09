@@ -1,5 +1,7 @@
-package com.dengzii.plugin.adb
+package com.dengzii.plugin.adb.utils
 
+import com.dengzii.plugin.adb.Device
+import com.dengzii.plugin.adb.XLog
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream

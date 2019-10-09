@@ -1,7 +1,10 @@
 @file:Suppress("SpellCheckingInspection")
 
-package com.dengzii.plugin.adb
+package com.dengzii.plugin.adb.utils
 
+import com.dengzii.plugin.adb.Device
+import com.dengzii.plugin.adb.XLog
+import com.jetbrains.rd.util.string.printToString
 import java.util.regex.Pattern
 
 /**
@@ -17,6 +20,7 @@ object AdbUtils {
 
     private const val CMD_LIST_DEVICES = "adb devices -l"
     private const val CMD_RESTART_ABD_SERVER = "adb kill-server && adb devices"
+
     private const val NO_DEVICE = "no device"
 
     private const val PERMISSION_DENIED = "Permission denied"
@@ -32,25 +36,19 @@ object AdbUtils {
     private const val REGEX_IP = "((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}"
     private val PATTERN_INET_ADDR = Pattern.compile("inet addr:($REGEX_IP) {2}Bcast:($REGEX_IP)")
 
+    val USED_ADB_PORT = mutableListOf<String>()
     val DEVICES = ArrayList<Device>()
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        XLog.disable()
-        getConnectedDeviceList(object : DeviceListListener {
-            override fun onDeviceList(list: List<Device>) {
-                println(list)
-//                list[0].turnOnTcp(5555)
-            }
-        })
+    fun disconnect(ip: String, port: String): CmdResult {
+        return CmdUtils.execSync("adb disconnect $ip:$port")
     }
 
-    fun connect(device: Device, listener: CmdListener?) {
-        CmdUtils.exec("adb connect ${device.ip}", listener)
+    fun connect(ip: String, port: String): CmdResult {
+        return CmdUtils.execSync("adb connect $ip${if (port.isBlank()) "" else ":$port"}")
     }
 
-    fun turnTcp(device: Device, port: Int, listener: CmdListener?) {
-        CmdUtils.exec("adb -s ${device.sn} tcpip $port", listener)
+    fun turnTcp(device: Device, port: String): CmdResult {
+        return CmdUtils.execSync("adb -s ${device.sn} tcpip $port")
     }
 
     fun screenRecord(device: Device, local: String, listener: CmdListener?) {
@@ -81,33 +79,32 @@ object AdbUtils {
         CmdUtils.exec("adb -s ${device.sn} pull $remote $local", listener)
     }
 
+    fun isPortVailable(port: String): Boolean {
+        return !USED_ADB_PORT.contains(port)
+    }
 
-    fun getConnectedDeviceList(deviceListListener: DeviceListListener) {
+    fun getConnectedDeviceList(): List<Device> {
 
-        CmdUtils.exec(CMD_LIST_DEVICES, object : CmdListener {
-            override fun onExecuted(success: Boolean, code: Int, msg: String) {
-                if (msg.contains(NO_DEVICE)) {
-                    deviceListListener.onDeviceList(listOf())
-                    return
+        val res = CmdUtils.execSync(CMD_LIST_DEVICES)
+        if (res.info.contains(NO_DEVICE)) {
+            return listOf()
+        }
+        val lines = res.info.split(NEW_LINE).filter {
+            !it.isBlank() && !it.contains(LIST_OF_DEVICES_ATTACHED)
+        }
+        val devices = ArrayList<Device>()
+        lines.forEach {
+            val device = getDeviceFromLine(it)
+            if (device != null) {
+                if (device.ip.isBlank()) {
+                    setIpAddress(device)
                 }
-                val lines = msg.split(NEW_LINE).filter {
-                    !it.isBlank() && !it.contains(LIST_OF_DEVICES_ATTACHED)
-                }
-                val devices = ArrayList<Device>()
-                lines.forEach {
-                    val device = getDeviceFromLine(it)
-                    if (device != null) {
-                        if (device.ip.isBlank()) {
-                            setIpAddress(device)
-                        }
-                        devices.add(device)
-                    }
-                }
-                DEVICES.clear()
-                DEVICES.addAll(devices)
-                deviceListListener.onDeviceList(devices)
+                devices.add(device)
             }
-        })
+        }
+        DEVICES.clear()
+        DEVICES.addAll(devices)
+        return devices
     }
 
     fun restartServer() {
@@ -130,6 +127,7 @@ object AdbUtils {
         if (part.size < 4) {
             return null
         }
+        XLog.d("AdbUtils.getDeviceFromLine", part.printToString())
         val modelName = part[2].split(":")[1]
         val model = part[3].split(":")[1]
         val status = Device.STATUS.getStatus(part[1])
@@ -137,10 +135,13 @@ object AdbUtils {
         device.status = status
         device.modelName = modelName
 
+        // connected by wlan
         if (device.sn.contains(":")) {
             val tcp = device.sn.split(":")
             device.ip = tcp[0]
             device.port = tcp[1]
+            USED_ADB_PORT.add(device.port)
+            device.status = Device.STATUS.CONNECTED
         }
         return device
     }

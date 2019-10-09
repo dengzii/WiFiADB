@@ -1,5 +1,10 @@
 package com.dengzii.plugin.adb
 
+import com.dengzii.plugin.adb.utils.AdbUtils
+import com.dengzii.plugin.adb.utils.CmdListener
+import com.dengzii.plugin.adb.utils.CmdResult
+import com.dengzii.plugin.adb.utils.CmdUtils
+
 /**
  * <pre>
  * author : dengzi
@@ -19,8 +24,8 @@ class Device() {
     var status: STATUS = STATUS.UNKNOWN
     var broadcastAddress: String = ""
 
-    companion object{
-        const val TAG = "Device"
+    companion object {
+        private const val TAG = "Device"
     }
 
     constructor(sn: String, model: String) : this() {
@@ -28,16 +33,29 @@ class Device() {
         this.model = model
     }
 
-    fun turnOnTcp(port: Int) {
-        AdbUtils.turnTcp(this, port, null)
+    fun turnOnTcp(port: String) {
+        AdbUtils.turnTcp(this, port)
     }
 
-    fun connect() {
-        if (status != STATUS.ONLINE) {
-            AdbUtils.connect(this, null)
-        }else{
+    fun disconnect() {
+        if (this.status == STATUS.CONNECTED && ip.isNotBlank() && port.isNotBlank()) {
+            AdbUtils.disconnect(ip, port)
+        }
+    }
+
+    fun connect(): CmdResult? {
+        if (status != STATUS.CONNECTED) {
+            var p = 5555
+            while (!AdbUtils.isPortVailable(p.toString())) {
+                p += 2
+            }
+            port = p.toString()
+            AdbUtils.turnTcp(this, port)
+            return AdbUtils.connect(ip, port)
+        } else {
             XLog.d("$TAG.connect", "device already connected.")
         }
+        return null
     }
 
     fun installApk(path: String) {
@@ -56,7 +74,6 @@ class Device() {
         AdbUtils.start(this, null)
     }
 
-
     private fun shell(cmd: String, listener: CmdListener? = null) {
         CmdUtils.adbShell(this, cmd, listener)
     }
@@ -73,7 +90,7 @@ class Device() {
 
     enum class STATUS {
 
-        ONLINE, OFFLINE, DISCONNECT, UNKNOWN, UNAUTHORIZED;
+        ONLINE, CONNECTED, OFFLINE, DISCONNECT, UNKNOWN, UNAUTHORIZED;
 
         companion object {
             fun getStatus(status: String) = when (status) {

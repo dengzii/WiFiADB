@@ -1,4 +1,4 @@
-package com.dengzii.plugin.adb
+package com.dengzii.plugin.adb.utils
 
 /**
  * <pre>

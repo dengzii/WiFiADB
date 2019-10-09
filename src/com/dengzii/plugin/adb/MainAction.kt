@@ -1,9 +1,10 @@
 package com.dengzii.plugin.adb
 
+import com.dengzii.plugin.adb.utils.AdbUtils.DeviceListListener
+import com.dengzii.plugin.adb.ui.AdbDialog
+import com.dengzii.plugin.adb.utils.AdbUtils
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-
-import java.io.IOException
 
 /**
  * <pre>
@@ -18,12 +19,9 @@ class MainAction : AnAction() {
 
     override fun actionPerformed(anActionEvent: AnActionEvent) {
 
-        try {
-            val process = Runtime.getRuntime().exec("adb devices")
-
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-
+        val dialog = AdbDialog()
+        dialog.setData(AdbUtils.getConnectedDeviceList())
+        dialog.pack()
+        dialog.isVisible = true
     }
 }
