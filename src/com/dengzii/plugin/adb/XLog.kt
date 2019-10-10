@@ -15,7 +15,12 @@ import java.util.*
 object XLog {
 
     private var TURN_ON_LOG = true
+    private var LOG = StringBuilder()
     var LOG_LISTENER: LogListener? = null
+
+    fun getLog(): String {
+        return LOG.toString()
+    }
 
     fun disable() {
         TURN_ON_LOG = false
@@ -42,6 +47,7 @@ object XLog {
         if (!TURN_ON_LOG) {
             return
         }
+        LOG.append(log).append("\n")
         LOG_LISTENER?.log("", log)
         if (error) {
             System.err.println(log)

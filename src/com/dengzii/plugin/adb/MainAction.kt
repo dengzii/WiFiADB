@@ -20,7 +20,7 @@ class MainAction : AnAction() {
     override fun actionPerformed(anActionEvent: AnActionEvent) {
 
         val dialog = AdbDialog()
-        dialog.setData(AdbUtils.getConnectedDeviceList())
+        dialog.update()
         dialog.pack()
         dialog.isVisible = true
     }

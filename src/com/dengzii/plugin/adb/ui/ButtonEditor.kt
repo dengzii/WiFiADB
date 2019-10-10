@@ -1,14 +1,16 @@
 package com.dengzii.plugin.adb.ui
 
 import com.dengzii.plugin.adb.Device
+import com.dengzii.plugin.adb.XLog
+import com.dengzii.plugin.adb.utils.AdbUtils
 import com.intellij.ui.components.JBLabel
 import java.awt.BorderLayout
 import java.awt.Component
-import java.awt.event.MouseEvent
 import javax.swing.AbstractCellEditor
 import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.table.TableCellEditor
+import javax.swing.table.TableCellRenderer
 
 /**
  * <pre>
@@ -19,15 +21,31 @@ import javax.swing.table.TableCellEditor
  * desc   :
  * </pre>
  */
-class ButtonEditor : AbstractCellEditor(), TableCellEditor {
+class ButtonEditor(dialog: AdbDialog) : AbstractCellEditor(), TableCellEditor, TableCellRenderer {
 
-    override fun getCellEditorValue(): Any {
-        return 1
+    private val dialog = dialog
+    private lateinit var value: Device
+
+    override fun getTableCellRendererComponent(table: JTable?, value: Any?,
+                                               isSelected: Boolean, hasFocus: Boolean,
+                                               row: Int, column: Int): Component {
+        return getButton(value)
     }
 
     override fun getTableCellEditorComponent(table: JTable?, device: Any?, isSelected: Boolean,
                                              row: Int, column: Int): Component {
+        value = device as Device
+        return getButton(device)
+    }
+
+    override fun getCellEditorValue(): Any {
+        return value
+    }
+
+    private fun getButton(device: Any?): Component {
+
         if (device !is Device) {
+            XLog.d("ButtonEditor.getButton", device.toString())
             return JBLabel("-")
         }
         val status = device.status
@@ -37,35 +55,53 @@ class ButtonEditor : AbstractCellEditor(), TableCellEditor {
         val button = Button(status.name.toLowerCase())
         button.isEnabled = false
         when (status) {
-            Device.STATUS.CONNECTED -> {
+            Device.Status.CONNECTED -> {
                 button.isEnabled = true
                 button.text = "disconnect"
                 button.redText()
             }
-            Device.STATUS.ONLINE, Device.STATUS.DISCONNECT -> {
-                button.isEnabled = true
-                button.text = "connect"
-                button.greenText()
+            Device.Status.ONLINE, Device.Status.DISCONNECT -> {
+                if (!AdbUtils.isIpConnected(device.ip)) {
+                    button.isEnabled = true
+                    button.text = "connect"
+                    button.greenText()
+                } else {
+                    button.text = "usb"
+                }
             }
         }
-        button.setOnClickListener(object : Button.OnClickListener {
-            override fun onClick(e: MouseEvent?) {
+        button.addActionListener {
+            if (button.isEnabled) {
                 clicked(device)
             }
-        })
+        }
 
         panel.add(button, BorderLayout.CENTER)
         return panel
     }
 
     private fun clicked(device: Device) {
-        if (device.status == Device.STATUS.CONNECTED) {
-            device.disconnect()
-        }
+
         when (device.status) {
-            Device.STATUS.CONNECTED -> device.disconnect()
-            Device.STATUS.ONLINE -> device.connect()
-            Device.STATUS.DISCONNECT -> device.connect()
+            Device.Status.CONNECTED -> {
+                disconnect(device)
+            }
+            Device.Status.ONLINE -> {
+                connect(device)
+            }
+            Device.Status.DISCONNECT -> {
+                connect(device)
+            }
         }
+    }
+
+    private fun connect(device: Device) {
+        device.connect()
+        dialog.update()
+    }
+
+    private fun disconnect(device: Device) {
+        device.disconnect()
+        dialog.update()
     }
 }

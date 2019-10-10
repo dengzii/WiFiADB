@@ -21,16 +21,22 @@ class Device() {
     var model: String = ""
     var modelName: String = ""
     var port: String = ""
-    var status: STATUS = STATUS.UNKNOWN
+    var status: Status = Status.UNKNOWN
     var broadcastAddress: String = ""
 
     companion object {
         private const val TAG = "Device"
     }
 
-    constructor(sn: String, model: String) : this() {
+    constructor(sn: String, ip: String, model: String, modelName: String,
+                port: String, status: String, broadcastAddress: String) : this() {
         this.sn = sn
+        this.ip = ip
         this.model = model
+        this.modelName = modelName
+        this.port = port
+        this.status = Status.getStatus(status)
+        this.broadcastAddress = broadcastAddress
     }
 
     fun turnOnTcp(port: String) {
@@ -38,19 +44,20 @@ class Device() {
     }
 
     fun disconnect() {
-        if (this.status == STATUS.CONNECTED && ip.isNotBlank() && port.isNotBlank()) {
+        if (this.status == Status.CONNECTED && ip.isNotBlank() && port.isNotBlank()) {
             AdbUtils.disconnect(ip, port)
         }
     }
 
     fun connect(): CmdResult? {
-        if (status != STATUS.CONNECTED) {
+        if (status != Status.CONNECTED && ip !in AdbUtils.DEVICES_CONNECTED) {
             var p = 5555
             while (!AdbUtils.isPortVailable(p.toString())) {
                 p += 2
             }
             port = p.toString()
             AdbUtils.turnTcp(this, port)
+            status = Status.CONNECTED
             return AdbUtils.connect(ip, port)
         } else {
             XLog.d("$TAG.connect", "device already connected.")
@@ -88,7 +95,7 @@ class Device() {
                 "broadcastAddress='$broadcastAddress')"
     }
 
-    enum class STATUS {
+    enum class Status {
 
         ONLINE, CONNECTED, OFFLINE, DISCONNECT, UNKNOWN, UNAUTHORIZED;
 

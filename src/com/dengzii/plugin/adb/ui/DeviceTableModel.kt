@@ -1,8 +1,7 @@
 package com.dengzii.plugin.adb.ui
 
 import com.dengzii.plugin.adb.Device
-import com.sun.jna.StringArray
-import javax.swing.table.AbstractTableModel
+import javax.swing.table.DefaultTableModel
 
 /**
  * <pre>
@@ -13,19 +12,26 @@ import javax.swing.table.AbstractTableModel
  * desc   :
  * </pre>
  */
-class DeviceTableModel() : AbstractTableModel() {
+class DeviceTableModel : DefaultTableModel() {
 
-    private val table: ArrayList<ArrayList<Any>> = arrayListOf()
 
-    fun setData(devices: List<Device>){
-        table.clear()
-        devices.forEach {
-            table.add(arrayListOf(it.sn, it.model, it.modelName, it.ip, it.port, it.status.name, it))
-        }
+    companion object {
+        private val TABLE_HEADER = arrayOf("Name", "Model_Name", "Model", "IP", "Port", "Status", "Operate")
     }
 
-    override fun getRowCount(): Int {
-        return table.size
+    fun setData(devices: List<Device>) {
+        while (rowCount > 0) {
+            removeRow(0)
+        }
+        fireTableDataChanged()
+        devices.forEach {
+            addRow(arrayOf(it.sn, it.model, it.modelName, it.ip, it.port, it.status.name, it))
+        }
+        fireTableDataChanged()
+    }
+
+    override fun getColumnClass(columnIndex: Int): Class<*> {
+        return if (columnIndex == columnCount) Device::class.java else String::class.java
     }
 
     override fun getColumnCount(): Int {
@@ -36,15 +42,7 @@ class DeviceTableModel() : AbstractTableModel() {
         return columnIndex == 6
     }
 
-    override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
-        return table[rowIndex][columnIndex]
-    }
-
-    override fun getColumnClass(columnIndex: Int): Class<*> {
-        return super.getColumnClass(columnIndex)
-    }
-
     override fun getColumnName(column: Int): String {
-        return super.getColumnName(column)
+        return TABLE_HEADER[column]
     }
 }
