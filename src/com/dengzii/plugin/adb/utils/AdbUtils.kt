@@ -2,6 +2,7 @@
 
 package com.dengzii.plugin.adb.utils
 
+import com.dengzii.plugin.adb.Config
 import com.dengzii.plugin.adb.Device
 import com.dengzii.plugin.adb.XLog
 import java.util.regex.Pattern
@@ -17,13 +18,12 @@ import java.util.regex.Pattern
  */
 object AdbUtils {
 
-    private const val CMD_LIST_DEVICES = "adb devices -l"
-    private const val CMD_RESTART_ABD_SERVER = "adb kill-server && adb devices"
+    private val LINE_NO_DEVICES = arrayOf(
+            "* daemon not running. starting it now on port 5037 *",
+            "* daemon started successfully *",
+            "List of devices attached",
+            "adb server is out of date.  killing...")
 
-    private const val NO_DEVICE = "no device"
-
-    private const val PERMISSION_DENIED = "Permission denied"
-    private const val LIST_OF_DEVICES_ATTACHED = "List of devices attached"
     private const val SPACE = " "
     private const val NEW_LINE = "\n"
 
@@ -35,14 +35,18 @@ object AdbUtils {
     private const val REGEX_IP = "((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}"
     private val PATTERN_INET_ADDR = Pattern.compile("inet addr:($REGEX_IP) {2}Bcast:($REGEX_IP)")
 
-    val USED_ADB_PORT = mutableListOf<String>()
-    val DEVICES_CONNECTED = HashMap<String, Device>()
+    private val DEVICES_CONNECTED = ArrayList<String>()
+    private val USED_ADB_PORT = mutableListOf<String>()
+    private val DEVICES_TEMP = HashMap<String, Device>()
 
     fun disconnect(ip: String, port: String): CmdResult {
         return CmdUtils.execSync("adb disconnect $ip:$port")
     }
 
     fun connect(ip: String, port: String): CmdResult {
+        if (port !in USED_ADB_PORT) {
+            USED_ADB_PORT.add(port)
+        }
         return CmdUtils.execSync("adb connect $ip${if (port.isBlank()) "" else ":$port"}")
     }
 
@@ -91,40 +95,52 @@ object AdbUtils {
     }
 
     fun isIpConnected(ip: String): Boolean {
-        return DEVICES_CONNECTED.containsKey(ip)
+        return ip in DEVICES_CONNECTED
     }
 
     fun getConnectedDeviceList(): List<Device> {
 
         DEVICES_CONNECTED.clear()
         USED_ADB_PORT.clear()
-        val res = CmdUtils.execSync(CMD_LIST_DEVICES)
-        if (res.info.contains(NO_DEVICE)) {
-            return listOf()
+        DEVICES_TEMP.clear()
+
+        Config.loadDevices().forEach {
+            DEVICES_TEMP[it.sn] = it
         }
-        val lines = res.info.split(NEW_LINE).filter {
-            !it.isBlank() && !it.contains(LIST_OF_DEVICES_ATTACHED)
-        }
-        val devices = ArrayList<Device>()
-        lines.forEach {
-            val device = getDeviceFromLine(it)
-            if (device != null) {
-                if (device.ip.isBlank()) {
-                    setIpAddress(device)
+
+        val res = CmdUtils.execSync("adb devices -l")
+        val lines = res.info.split(NEW_LINE)
+        val devices = HashMap<String, Device>()
+
+        lines.filter {
+            !it.isBlank() && it.trim() !in LINE_NO_DEVICES
+        }.mapNotNull {
+            getDeviceFromLine(it)
+        }.forEach { device ->
+            // device does not connecte, get ip
+            if (device.ip.isBlank()) {
+                setIpAddress(device)
+            }
+            // device connected by wifi
+            if (device.port.isNotBlank()) {
+                if (device.ip !in DEVICES_CONNECTED) {
+                    DEVICES_CONNECTED.add(device.ip)
                 }
-                devices.add(device)
+                DEVICES_TEMP[device.sn] = device
             }
+            devices[device.sn] = device
         }
-        devices.forEach {
-            if (it.port.isNotBlank()) {
-                DEVICES_CONNECTED[it.ip] = it
-            }
-        }
-        return devices
+        devices.putAll(DEVICES_TEMP)
+        Config.saveDevice(DEVICES_TEMP.values.toList())
+        return devices.values.toList()
+    }
+
+    fun getTempDevices(): List<Device> {
+        return DEVICES_TEMP.values.toList()
     }
 
     fun restartServer() {
-        CmdUtils.exec(CMD_RESTART_ABD_SERVER)
+        CmdUtils.exec("adb kill-server && adb devices")
     }
 
     private fun setIpAddress(device: Device) {
@@ -138,9 +154,6 @@ object AdbUtils {
 
     private fun getDeviceFromLine(line: String): Device? {
         XLog.d("AdbUtils.getDeviceFromLine", line)
-        if (line.startsWith("*")) {
-            return null
-        }
         val part = line.split(SPACE).filter {
             !it.isBlank()
         }

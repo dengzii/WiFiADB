@@ -9,6 +9,7 @@ import java.awt.Component
 import javax.swing.AbstractCellEditor
 import javax.swing.JPanel
 import javax.swing.JTable
+import javax.swing.SwingUtilities
 import javax.swing.table.TableCellEditor
 import javax.swing.table.TableCellRenderer
 
@@ -60,13 +61,18 @@ class ButtonEditor(dialog: AdbDialog) : AbstractCellEditor(), TableCellEditor, T
                 button.text = "disconnect"
                 button.redText()
             }
+            Device.Status.DISCONNECTED -> {
+                button.isEnabled = true
+                button.text = "connect"
+                button.greenText()
+            }
             Device.Status.ONLINE, Device.Status.DISCONNECT -> {
                 if (!AdbUtils.isIpConnected(device.ip)) {
                     button.isEnabled = true
                     button.text = "connect"
                     button.greenText()
                 } else {
-                    button.text = "usb"
+                    button.text = "local"
                 }
             }
         }
@@ -86,10 +92,7 @@ class ButtonEditor(dialog: AdbDialog) : AbstractCellEditor(), TableCellEditor, T
             Device.Status.CONNECTED -> {
                 disconnect(device)
             }
-            Device.Status.ONLINE -> {
-                connect(device)
-            }
-            Device.Status.DISCONNECT -> {
+            Device.Status.ONLINE, Device.Status.DISCONNECT, Device.Status.DISCONNECTED -> {
                 connect(device)
             }
         }
@@ -97,11 +100,17 @@ class ButtonEditor(dialog: AdbDialog) : AbstractCellEditor(), TableCellEditor, T
 
     private fun connect(device: Device) {
         device.connect()
-        dialog.update()
+        Thread {
+            Thread.sleep(500)
+            SwingUtilities.invokeLater { dialog.update() }
+        }.start()
     }
 
     private fun disconnect(device: Device) {
         device.disconnect()
-        dialog.update()
+        Thread {
+            Thread.sleep(500)
+            SwingUtilities.invokeLater { dialog.update() }
+        }.start()
     }
 }

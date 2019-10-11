@@ -26,17 +26,25 @@ class Device() {
 
     companion object {
         private const val TAG = "Device"
+
+        fun fromSerialString(serialString: String): Device {
+            val args = serialString.split("#|#").toTypedArray()
+            return Device(*args)
+        }
     }
 
-    constructor(sn: String, ip: String, model: String, modelName: String,
-                port: String, status: String, broadcastAddress: String) : this() {
-        this.sn = sn
-        this.ip = ip
-        this.model = model
-        this.modelName = modelName
-        this.port = port
-        this.status = Status.getStatus(status)
-        this.broadcastAddress = broadcastAddress
+    private constructor(vararg arg: String) : this() {
+        this.sn = arg[0]
+        this.ip = arg[1]
+        this.model = arg[2]
+        this.modelName = arg[3]
+        this.port = arg[4]
+        this.status = Status.DISCONNECTED
+        this.broadcastAddress = arg[6]
+    }
+
+    fun toSerialString(): String {
+        return arrayOf(sn, ip, model, modelName, port, status.name, broadcastAddress).joinToString("#|#")
     }
 
     fun turnOnTcp(port: String) {
@@ -50,7 +58,7 @@ class Device() {
     }
 
     fun connect(): CmdResult? {
-        if (status != Status.CONNECTED && ip !in AdbUtils.DEVICES_CONNECTED) {
+        if (status != Status.CONNECTED && !AdbUtils.isIpConnected(ip)) {
             var p = 5555
             while (!AdbUtils.isPortVailable(p.toString())) {
                 p += 2
@@ -97,12 +105,13 @@ class Device() {
 
     enum class Status {
 
-        ONLINE, CONNECTED, OFFLINE, DISCONNECT, UNKNOWN, UNAUTHORIZED;
+        ONLINE, CONNECTED, OFFLINE, DISCONNECT, DISCONNECTED, UNKNOWN, UNAUTHORIZED;
 
         companion object {
             fun getStatus(status: String) = when (status) {
                 "device" -> ONLINE
                 "disconnect" -> DISCONNECT
+                "disconnected" -> DISCONNECTED
                 "offline" -> OFFLINE
                 "unauthorized" -> UNAUTHORIZED
                 else -> UNKNOWN

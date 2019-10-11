@@ -1,7 +1,6 @@
 package com.dengzii.plugin.adb
 
 import com.intellij.ide.util.PropertiesComponent
-import com.sun.jna.StringArray
 
 /**
  * <pre>
@@ -15,12 +14,29 @@ import com.sun.jna.StringArray
 
 object Config {
 
-    fun getDevices(): List<Device> {
+    private const val KEY_DEVICES = "com.dengzii.plugin.adb.devices"
+
+    fun clear(){
+        PropertiesComponent.getInstance().unsetValue(KEY_DEVICES)
+    }
+
+    fun loadDevices(): List<Device> {
 
         val pro = PropertiesComponent.getInstance();
-        val (a) = Device()
-
-        return listOf()
+        val deviceList = pro.getValues(KEY_DEVICES)
+        val devices = ArrayList<Device>()
+        deviceList?.forEach {
+            devices.add(Device.fromSerialString(it))
+        }
+        return devices
     }
+
+    fun saveDevice(devices: List<Device>) {
+
+        val pro = PropertiesComponent.getInstance();
+        val serialList = devices.map { it.toSerialString() }.toTypedArray()
+        pro.setValues(KEY_DEVICES, serialList)
+    }
+
 }
 

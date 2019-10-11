@@ -1,5 +1,6 @@
 package com.dengzii.plugin.adb.ui;
 
+import com.dengzii.plugin.adb.Config;
 import com.dengzii.plugin.adb.XLog;
 import com.dengzii.plugin.adb.utils.AdbUtils;
 
@@ -14,7 +15,7 @@ public class AdbDialog extends JDialog {
     private JTable table1;
     private JButton buttonExit;
     private JButton buttonLog;
-    private JButton buttonCmd;
+    private JButton buttonClean;
     private JButton buttonRefresh;
 
     private DeviceTableModel deviceTableModel;
@@ -30,7 +31,7 @@ public class AdbDialog extends JDialog {
 
         buttonLog.addActionListener(e -> new LogDialog().show(XLog.INSTANCE.getLog()));
         buttonExit.addActionListener(e -> dispose());
-        buttonCmd.addActionListener(e -> new CmdDialog().create());
+        buttonClean.addActionListener(e -> Config.INSTANCE.clear());
         buttonRefresh.addActionListener(e -> update());
     }
 

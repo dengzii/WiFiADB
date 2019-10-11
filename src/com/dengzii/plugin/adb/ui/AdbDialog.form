@@ -52,12 +52,12 @@
               <text value="Log"/>
             </properties>
           </component>
-          <component id="a2050" class="javax.swing.JButton" binding="buttonCmd">
+          <component id="a2050" class="javax.swing.JButton" binding="buttonClean">
             <constraints>
               <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="CMD"/>
+              <text value="Clean"/>
             </properties>
           </component>
           <component id="8c1d7" class="javax.swing.JButton" binding="buttonRefresh">
