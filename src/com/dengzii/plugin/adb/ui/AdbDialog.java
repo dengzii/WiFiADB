@@ -3,19 +3,26 @@ package com.dengzii.plugin.adb.ui;
 import com.dengzii.plugin.adb.Config;
 import com.dengzii.plugin.adb.XLog;
 import com.dengzii.plugin.adb.utils.AdbUtils;
+import com.intellij.ui.JBColor;
 
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 public class AdbDialog extends JDialog {
 
+    private static final String ABOUT =
+            "\n********************\n" +
+                    "AdbWiFi Tool\n" +
+                    "(c) dengzii 2019 \n" +
+                    "GitHub: https://github.com/MrDenua/WiFiADB\n" +
+                    "********************\n";
+
     private JPanel contentPane;
     private JTable table1;
-    private JButton buttonExit;
-    private JButton buttonLog;
-    private JButton buttonClean;
     private JButton buttonRefresh;
 
     private DeviceTableModel deviceTableModel;
@@ -28,10 +35,6 @@ public class AdbDialog extends JDialog {
 
         initDialog();
         initTable();
-
-        buttonLog.addActionListener(e -> new LogDialog().show(XLog.INSTANCE.getLog()));
-        buttonExit.addActionListener(e -> dispose());
-        buttonClean.addActionListener(e -> Config.INSTANCE.clear());
         buttonRefresh.addActionListener(e -> update());
     }
 
@@ -74,6 +77,50 @@ public class AdbDialog extends JDialog {
         contentPane.registerKeyboardAction(e -> dispose(),
                 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
                 JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        initMenu();
+    }
+
+    private void initMenu() {
+
+        JMenuBar menuBar = new JMenuBar();
+        String[] menus = {"Tools", "About"};
+        String[][] menuItems = {{"Log", "Clear All", "Refresh", "Exit"}, {"About"}};
+
+        for (int i = 0; i < menus.length; i++) {
+            JMenu menu = new JMenu(menus[i]);
+            for (int j = 0; j < menuItems[i].length; j++) {
+                JMenuItem menuItem = new JMenuItem(menuItems[i][j]);
+                menu.add(menuItem);
+                menuItem.addMouseListener(new SimpleMouseListener() {
+                    @Override
+                    public void mousePressed(MouseEvent e) {
+                        onMenuClick(((JMenuItem) e.getSource()).getText());
+                    }
+                });
+            }
+            menuBar.add(menu);
+        }
+        setJMenuBar(menuBar);
+    }
+
+    private void onMenuClick(String title) {
+        switch (title) {
+            case "Log":
+                new LogDialog().show(XLog.INSTANCE.getLog());
+                break;
+            case "Refresh":
+                update();
+                break;
+            case "Clear All":
+                Config.INSTANCE.clear();
+                break;
+            case "Exit":
+                dispose();
+                break;
+            case "About":
+                new LogDialog().show(ABOUT);
+                break;
+        }
     }
 
     public static void main(String[] args) {
@@ -82,5 +129,28 @@ public class AdbDialog extends JDialog {
         dialog.pack();
         dialog.setVisible(true);
         System.exit(0);
+    }
+
+    private abstract static class SimpleMouseListener implements MouseListener {
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+
+        }
     }
 }

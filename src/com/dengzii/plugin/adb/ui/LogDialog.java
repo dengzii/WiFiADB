@@ -41,6 +41,7 @@ public class LogDialog extends JDialog {
         setLocation(x, y);
         setPreferredSize(new Dimension(w, h));
 
+        setTitle("WiFiAdb Tools");
         pack();
         setVisible(true);
     }

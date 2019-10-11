@@ -16,7 +16,7 @@ object Config {
 
     private const val KEY_DEVICES = "com.dengzii.plugin.adb.devices"
 
-    fun clear(){
+    fun clear() {
         PropertiesComponent.getInstance().unsetValue(KEY_DEVICES)
     }
 

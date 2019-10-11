@@ -22,9 +22,8 @@ import javax.swing.table.TableCellRenderer
  * desc   :
  * </pre>
  */
-class ButtonEditor(dialog: AdbDialog) : AbstractCellEditor(), TableCellEditor, TableCellRenderer {
+class ButtonEditor(private val dialog: AdbDialog) : AbstractCellEditor(), TableCellEditor, TableCellRenderer {
 
-    private val dialog = dialog
     private lateinit var value: Device
 
     override fun getTableCellRendererComponent(table: JTable?, value: Any?,
