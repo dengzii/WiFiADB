@@ -6,17 +6,19 @@
   <version>1.0</version>
   <vendor email="denua@foxmail.com" url="https://dengzii.com">dengzi</vendor>
   <description><![CDATA[
-      <h3><b>An plugin use for connect android device by WiFi.</b><h3><br>
-      <b>GitHub : <a href="https://github.com/MrDenua/WiFiADB">WiFiADB</a></b><br><br>
-      <b>Usage: </b> <br> <br>
-      <b>Please ensure your complete has install adb shell. Reference here ->
-      <a href="https://developer.android.google.cn/studio/command-line/adb#top_of_page">Android Debug Bridge</a></b>
-      <br><br>
+      <b>An plugin use for connect android device by WiFi.</b>
+      <p>GitHub : <a href="https://github.com/MrDenua/WiFiADB">WiFiADB</a></p>
+      <br>
+      <p>Usage: </p>
+      <br>
+      <p>Please ensure your complete has install adb shell. Reference here ->
+      <a href="https://developer.android.google.cn/studio/command-line/adb#top_of_page">Android Debug Bridge</a></p>
       connect your Android device to compute by usb,
        click Refresh button, you will see your device in table.
-        <b>If you does not find your devices, please see log from MenuBar Tools > Log, </b> <br>
+        <p>If you does not find your devices, please see log from MenuBar Tools > Log, </p> <br>
        <br>
-      <b>Screenshot</b>
+      <p>Screenshot</p>
+      <br>
       <img src="https://raw.githubusercontent.com/MrDenua/WiFiADB/master/screen_shot/adb_wifi.png">
     ]]></description>
 
@@ -28,7 +30,6 @@
   <idea-version since-build="183.4284.148"/>
 
   <depends>com.intellij.modules.java</depends>
-  <depends>com.intellij.modules.all</depends>
   <depends>org.jetbrains.kotlin</depends>
 
   <extensions defaultExtensionNs="com.intellij">
