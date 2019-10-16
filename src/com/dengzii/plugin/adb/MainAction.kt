@@ -1,8 +1,6 @@
 package com.dengzii.plugin.adb
 
-import com.dengzii.plugin.adb.utils.AdbUtils.DeviceListListener
 import com.dengzii.plugin.adb.ui.AdbDialog
-import com.dengzii.plugin.adb.utils.AdbUtils
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 

@@ -1,11 +1,11 @@
 <idea-plugin url="https://github.com/MrDenua/WiFiADB">
 
-  <id>com.dengzii.plugin.adb</id>
-  <name>Android WiFiADB</name>
+    <id>com.dengzii.plugin.adb</id>
+    <name>Android WiFiADB</name>
 
-  <version>1.0</version>
-  <vendor email="denua@foxmail.com" url="https://dengzii.com">dengzi</vendor>
-  <description><![CDATA[
+    <version>1.1</version>
+    <vendor email="denua@foxmail.com" url="https://dengzii.com">dengzi</vendor>
+    <description><![CDATA[
       <b>An plugin use for connect android device by WiFi.</b>
       <p>GitHub : <a href="https://github.com/MrDenua/WiFiADB">WiFiADB</a></p>
       <br>
@@ -19,30 +19,30 @@
        <br>
       <p>Screenshot</p>
       <br>
+      <br>
       <img src="https://raw.githubusercontent.com/MrDenua/WiFiADB/master/screen_shot/adb_wifi.png">
     ]]></description>
 
-  <change-notes><![CDATA[
-      An plugin use for connect android device by WiFi.<br>
+    <change-notes><![CDATA[
+      1.1: Fix bug: con't load device.<br>
+      1.0: An plugin use for connect android device by WiFi.<br>
     ]]>
-  </change-notes>
+    </change-notes>
 
-  <idea-version since-build="183.4284.148"/>
+    <idea-version since-build="183.4284.148"/>
 
-  <depends>com.intellij.modules.java</depends>
-  <depends>org.jetbrains.kotlin</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>org.jetbrains.kotlin</depends>
 
-  <extensions defaultExtensionNs="com.intellij">
-    <!-- Add your extensions here -->
-  </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+    </extensions>
 
-  <actions>
-    <!-- Add your actions here -->
-    <action id="com.dengzii.plugin.adb.MainAction" class="com.dengzii.plugin.adb.MainAction" text="WiFiAdb"
-            description="Connect android device by wifi">
-      <add-to-group group-id="ToolbarFindGroup" anchor="first"/>
-      <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt 2"/>
-    </action>
-  </actions>
+    <actions>
+        <action id="com.dengzii.plugin.adb.MainAction" class="com.dengzii.plugin.adb.MainAction" text="WiFiAdb"
+                description="Connect android device by wifi">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt 2"/>
+        </action>
+    </actions>
 
 </idea-plugin>

@@ -27,9 +27,17 @@ class Device() {
     companion object {
         private const val TAG = "Device"
 
-        fun fromSerialString(serialString: String): Device {
+        fun fromSerialString(serialString: String): Device? {
             val args = serialString.split("#|#").toTypedArray()
-            return Device(*args)
+            if (args.size != 7) {
+                return null
+            }
+            return try {
+                Device(*args)
+            } catch (e: Exception) {
+                XLog.e(TAG, e)
+                null
+            }
         }
     }
 

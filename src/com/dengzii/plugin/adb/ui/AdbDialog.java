@@ -84,7 +84,7 @@ public class AdbDialog extends JDialog {
 
         JMenuBar menuBar = new JMenuBar();
         String[] menus = {"Tools", "About"};
-        String[][] menuItems = {{"Log", "Clear All", "Refresh", "Exit"}, {"About"}};
+        String[][] menuItems = {{"Log", "Clear All", "Refresh", "Connect Manual", "Exit"}, {"About"}};
 
         for (int i = 0; i < menus.length; i++) {
             JMenu menu = new JMenu(menus[i]);
@@ -116,6 +116,9 @@ public class AdbDialog extends JDialog {
                 break;
             case "Exit":
                 dispose();
+                break;
+            case "Connect Manual":
+                new ConnectDialog().show(this::update);
                 break;
             case "About":
                 new LogDialog().show(ABOUT);

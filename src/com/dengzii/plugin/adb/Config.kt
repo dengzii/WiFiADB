@@ -26,7 +26,10 @@ object Config {
         val deviceList = pro.getValues(KEY_DEVICES)
         val devices = ArrayList<Device>()
         deviceList?.forEach {
-            devices.add(Device.fromSerialString(it))
+            val device = Device.fromSerialString(it)
+            if (device != null){
+                devices.add(device)
+            }
         }
         return devices
     }
