@@ -104,8 +104,12 @@ object AdbUtils {
         USED_ADB_PORT.clear()
         DEVICES_TEMP.clear()
 
-        Config.loadDevices().forEach {
-            DEVICES_TEMP[it.sn] = it
+        try {
+            Config.loadDevices().forEach {
+                DEVICES_TEMP[it.sn] = it
+            }
+        } catch (e: Exception) {
+            XLog.e("AdbUtils", e)
         }
 
         val res = CmdUtils.execSync("adb devices -l")
@@ -131,7 +135,11 @@ object AdbUtils {
             devices[device.sn] = device
         }
         devices.putAll(DEVICES_TEMP)
-        Config.saveDevice(DEVICES_TEMP.values.toList())
+        try {
+            Config.saveDevice(DEVICES_TEMP.values.toList())
+        }catch (e:Exception){
+            XLog.e("AdbUtils", e)
+        }
         return devices.values.toList()
     }
 
