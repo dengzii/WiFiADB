@@ -6,26 +6,32 @@
     <version>1.1</version>
     <vendor email="denua@foxmail.com" url="https://dengzii.com">dengzi</vendor>
     <description><![CDATA[
-      <b>An plugin use for connect android device by WiFi.</b>
-      <p>GitHub : <a href="https://github.com/MrDenua/WiFiADB">WiFiADB</a></p>
-      <br>
-      <p>Usage: </p>
-      <br>
-      <p>Please ensure your complete has install adb shell. Reference here ->
-      <a href="https://developer.android.google.cn/studio/command-line/adb#top_of_page">Android Debug Bridge</a></p>
-      connect your Android device to compute by usb,
-       click Refresh button, you will see your device in table.
-        <p>If you does not find your devices, please see log from MenuBar Tools > Log, </p> <br>
-       <br>
-      <p>Screenshot</p>
-      <br>
-      <br>
-      <img src="https://raw.githubusercontent.com/MrDenua/WiFiADB/master/screen_shot/adb_wifi.png">
+<h3>An plugin use for connect android device by WiFi.</h3>
+
+<b>Usage: </b>
+<p>- Please ensure your complete has install adb shell.
+    verify it by typing command 'adb' in the terminal or CMD.
+    Reference here -><a href="https://developer.android.google.cn/studio/command-line/adb#top_of_page">
+    Android Debug Bridge</a></p>
+<p>- Open WiFiADB tools from NavBar > Tools > WiFiADB, or use keyboard-shortcut Ctrl+Alt+2</p>
+<p>- Connect your Android device to compute by USB, click Refresh button, you will see your device in table.
+    click connect, it will remember your connection configure.</p>
+<p>- If you does not find your devices, please see log from MenuBar Tools > Log </p>
+<b>Contribute</b>
+<p>Using WiFi connect android device help us get rid of the usb cable.
+    I had tried other similar tool, but they are not faultless.</p>
+<p>GitHub : <a href="https://github.com/MrDenua/WiFiADB">WiFiADB</a></p>
+<p>Issue : if you have any questions, please <a href="https://github.com/MrDenua/WiFiADB/issues"> create issue.</a></p>
+
+<b>Screenshot</b>
+<br><br>
+<img src="https://raw.githubusercontent.com/MrDenua/WiFiADB/master/screen_shot/adb_wifi.png">
     ]]></description>
 
     <change-notes><![CDATA[
+      1.2:
       1.1: Fix bug: con't load device.<br>
-      1.0: An plugin use for connect android device by WiFi.<br>
+      1.0: A plugin use for connect android device by WiFi.<br>
     ]]>
     </change-notes>
 
@@ -38,7 +44,7 @@
     </extensions>
 
     <actions>
-        <action id="com.dengzii.plugin.adb.MainAction" class="com.dengzii.plugin.adb.MainAction" text="WiFiAdb"
+        <action id="com.dengzii.plugin.adb.MainAction" class="com.dengzii.plugin.adb.MainAction" text="WiFiADB"
                 description="Connect android device by wifi">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt 2"/>
