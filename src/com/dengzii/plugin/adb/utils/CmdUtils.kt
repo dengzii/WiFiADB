@@ -21,21 +21,18 @@ object CmdUtils {
 
     private const val TAG = "CmdUtils"
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        scanDevice()
-    }
 
-    fun scanDevice() {
-
-        try {
-            val socket = Socket("192.168.0.108", 5555)
-            println("Connected to " + socket.inetAddress + " on port " + socket.port + " from port " + socket.localPort + " of " + socket.localAddress);
-        }catch (e:Throwable){
-            println("not open.")
-        }
-
-    }
+//    fun scanDevice() {
+//
+//        try {
+//            val socket = Socket("192.168.0.108", 5555)
+//            println("Connected to " + socket.inetAddress + " on port " +
+//                    socket.port + " from port " + socket.localPort + " of " + socket.localAddress);
+//        }catch (e:Throwable){
+//            println("not open.")
+//        }
+//
+//    }
 
     fun adbShell(sh: String, listener: CmdListener?) {
         exec("adb shell $sh", listener)

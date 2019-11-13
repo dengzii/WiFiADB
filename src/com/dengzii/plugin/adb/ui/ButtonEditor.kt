@@ -25,6 +25,7 @@ import javax.swing.table.TableCellRenderer
 class ButtonEditor(private val dialog: AdbDialog) : AbstractCellEditor(), TableCellEditor, TableCellRenderer {
 
     private lateinit var value: Device
+    private var wait = false
 
     override fun getTableCellRendererComponent(table: JTable?, value: Any?,
                                                isSelected: Boolean, hasFocus: Boolean,
@@ -98,10 +99,17 @@ class ButtonEditor(private val dialog: AdbDialog) : AbstractCellEditor(), TableC
     }
 
     private fun connect(device: Device) {
-        device.connect()
+        if (wait){
+            return
+        }
+        dialog.setStatus("Connecting. please wait...")
+
         Thread {
+            device.connect()
+            wait = false
             Thread.sleep(500)
             SwingUtilities.invokeLater { dialog.update() }
+            dialog.setStatus("Connected to ${device.ip}:${device.port}")
         }.start()
     }
 

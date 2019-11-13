@@ -7,7 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class ConnectDialog extends JDialog {
+public class ConnectDialog extends JDialog implements Runnable {
     private JPanel contentPane;
     private JButton buttonOK;
     private JButton buttonCancel;
@@ -48,7 +48,7 @@ public class ConnectDialog extends JDialog {
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
 
-    public void show(CallBack callBack){
+    public void show(CallBack callBack) {
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         int w = 260;
         int h = 180;
@@ -63,12 +63,15 @@ public class ConnectDialog extends JDialog {
         setVisible(true);
     }
 
-
-    private void onOK() {
-        // add your code here
+    @Override
+    public void run() {
         CmdResult result = AdbUtils.INSTANCE.connect(textFieldIp.getText(), textFieldPort.getText());
         callBack.callBack();
         dispose();
+    }
+
+    private void onOK() {
+        new Thread(this).start();
     }
 
     private void onCancel() {
@@ -84,7 +87,7 @@ public class ConnectDialog extends JDialog {
         System.exit(0);
     }
 
-    interface CallBack{
+    interface CallBack {
         void callBack();
     }
 }

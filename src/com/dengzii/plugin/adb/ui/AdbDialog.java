@@ -3,7 +3,6 @@ package com.dengzii.plugin.adb.ui;
 import com.dengzii.plugin.adb.Config;
 import com.dengzii.plugin.adb.XLog;
 import com.dengzii.plugin.adb.utils.AdbUtils;
-import com.intellij.ui.JBColor;
 
 import javax.swing.*;
 import javax.swing.table.TableColumn;
@@ -12,7 +11,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
-public class AdbDialog extends JDialog {
+public class AdbDialog extends JDialog implements Runnable {
 
     private static final String ABOUT =
             "\n********************\n" +
@@ -24,6 +23,7 @@ public class AdbDialog extends JDialog {
     private JPanel contentPane;
     private JTable table1;
     private JButton buttonRefresh;
+    private JLabel labelStatus;
 
     private DeviceTableModel deviceTableModel;
 
@@ -38,11 +38,21 @@ public class AdbDialog extends JDialog {
         buttonRefresh.addActionListener(e -> update());
     }
 
-    public void update() {
-
+    @Override
+    public void run() {
         deviceTableModel.setData(AdbUtils.INSTANCE.getConnectedDeviceList());
         deviceTableModel.fireTableStructureChanged();
         initOperateCol();
+        setStatus("Refresh complete");
+    }
+
+    public void setStatus(String status){
+        labelStatus.setText(status);
+    }
+
+    public void update() {
+        setStatus("Refreshing, please wait...");
+        new Thread(this).start();
     }
 
     private void initTable() {

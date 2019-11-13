@@ -18,6 +18,7 @@ import java.util.regex.Pattern
  */
 object AdbUtils {
 
+    // Using for matches the cases commandline output are not device info.
     private val LINE_NO_DEVICES = arrayOf(
             "* daemon not running. starting it now on port 5037 *",
             "* daemon started successfully *",
@@ -38,6 +39,55 @@ object AdbUtils {
     private val DEVICES_CONNECTED = ArrayList<String>()
     private val USED_ADB_PORT = mutableListOf<String>()
     private val DEVICES_TEMP = HashMap<String, Device>()
+
+    fun getConnectedDeviceList(): List<Device> {
+
+        // clear exist device list
+        DEVICES_CONNECTED.clear()
+        USED_ADB_PORT.clear()
+        DEVICES_TEMP.clear()
+
+        try {
+            // loading confired device
+            Config.loadDevices().forEach {
+                DEVICES_TEMP[it.sn] = it
+            }
+        } catch (e: Exception) {
+            XLog.e("AdbUtils", e)
+        }
+
+        // run list device command, this is a long-running operation. it will frozen ui
+        val res = CmdUtils.execSync("adb devices -l")
+        val lines = res.info.split(NEW_LINE)
+        val devices = HashMap<String, Device>()
+
+        lines.filter {
+            !it.isBlank() && it.trim() !in LINE_NO_DEVICES
+        }.mapNotNull {
+            getDeviceFromLine(it)
+        }.forEach { device ->
+            // device does not connect, get device ip
+            if (device.ip.isBlank()) {
+                setIpAddress(device)
+            }
+            // device connected by wifi
+            if (device.port.isNotBlank()) {
+                if (device.ip !in DEVICES_CONNECTED) {
+                    DEVICES_CONNECTED.add(device.ip)
+                }
+                DEVICES_TEMP[device.sn] = device
+            }
+            devices[device.sn] = device
+        }
+        devices.putAll(DEVICES_TEMP)
+        try {
+            // persistent connected devices.
+            Config.saveDevice(DEVICES_TEMP.values.toList())
+        }catch (e:Exception){
+            XLog.e("AdbUtils", e)
+        }
+        return devices.values.toList()
+    }
 
     fun disconnect(ip: String, port: String): CmdResult {
         return CmdUtils.execSync("adb disconnect $ip:$port")
@@ -96,51 +146,6 @@ object AdbUtils {
 
     fun isIpConnected(ip: String): Boolean {
         return ip in DEVICES_CONNECTED
-    }
-
-    fun getConnectedDeviceList(): List<Device> {
-
-        DEVICES_CONNECTED.clear()
-        USED_ADB_PORT.clear()
-        DEVICES_TEMP.clear()
-
-        try {
-            Config.loadDevices().forEach {
-                DEVICES_TEMP[it.sn] = it
-            }
-        } catch (e: Exception) {
-            XLog.e("AdbUtils", e)
-        }
-
-        val res = CmdUtils.execSync("adb devices -l")
-        val lines = res.info.split(NEW_LINE)
-        val devices = HashMap<String, Device>()
-
-        lines.filter {
-            !it.isBlank() && it.trim() !in LINE_NO_DEVICES
-        }.mapNotNull {
-            getDeviceFromLine(it)
-        }.forEach { device ->
-            // device does not connecte, get ip
-            if (device.ip.isBlank()) {
-                setIpAddress(device)
-            }
-            // device connected by wifi
-            if (device.port.isNotBlank()) {
-                if (device.ip !in DEVICES_CONNECTED) {
-                    DEVICES_CONNECTED.add(device.ip)
-                }
-                DEVICES_TEMP[device.sn] = device
-            }
-            devices[device.sn] = device
-        }
-        devices.putAll(DEVICES_TEMP)
-        try {
-            Config.saveDevice(DEVICES_TEMP.values.toList())
-        }catch (e:Exception){
-            XLog.e("AdbUtils", e)
-        }
-        return devices.values.toList()
     }
 
     fun getTempDevices(): List<Device> {
