@@ -16,6 +16,12 @@ Another way is copy this plugin file into IDE's install path /_InstalliJIDE_/plu
 
 In your IntelliJ IDE, Nav > File > Settings > Plugins > Search WiFiADB
 
+### Change Log
+
+- 1.2: Fix bug: frozen ui when loading device and connecting device.
+- 1.1: Fix bug: con't load device configured.
+- 1.0: First release.
+
 ### Screenshot
 
 ![WiFiADB](https://raw.githubusercontent.com/MrDenua/WiFiADB/master/screen_shot/adb_wifi.png)
