@@ -29,7 +29,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
-      1.2:
+      1.2: Fix bug: frozen ui when loading device and connecting device.<br>
       1.1: Fix bug: con't load device.<br>
       1.0: A plugin use for connect android device by WiFi.<br>
     ]]>
