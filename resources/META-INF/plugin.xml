@@ -3,7 +3,7 @@
     <id>com.dengzii.plugin.adb</id>
     <name>Android WiFiADB</name>
 
-    <version>1.1</version>
+    <version>1.2</version>
     <vendor email="denua@foxmail.com" url="https://dengzii.com">dengzi</vendor>
     <description><![CDATA[
 <h3>An plugin use for connect android device by WiFi.</h3>
