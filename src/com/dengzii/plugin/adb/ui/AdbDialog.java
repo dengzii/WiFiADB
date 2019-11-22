@@ -55,6 +55,13 @@ public class AdbDialog extends JDialog implements Runnable {
         new Thread(this).start();
     }
 
+    public void update2() {
+        deviceTableModel.setData(AdbUtils.INSTANCE.getConnectedDeviceList());
+        deviceTableModel.fireTableStructureChanged();
+        initOperateCol();
+        setStatus("Refresh complete");
+    }
+
     private void initTable() {
 
         deviceTableModel = new DeviceTableModel();
@@ -75,7 +82,7 @@ public class AdbDialog extends JDialog implements Runnable {
 
     private void initDialog() {
         Dimension screen = getToolkit().getScreenSize();
-        int w = screen.width / 3;
+        int w = screen.width / 2;
         int h = 300;
         int x = screen.width / 2 - w / 2;
         int y = screen.height / 2 - h;

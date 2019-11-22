@@ -18,6 +18,8 @@ import java.util.regex.Pattern
  */
 object AdbUtils {
 
+    private val TAG = AdbUtils::class.java.simpleName
+
     // Using for matches the cases commandline output are not device info.
     private val LINE_NO_DEVICES = arrayOf(
             "* daemon not running. starting it now on port 5037 *",
@@ -46,20 +48,23 @@ object AdbUtils {
         DEVICES_CONNECTED.clear()
         USED_ADB_PORT.clear()
         DEVICES_TEMP.clear()
+        DEVICES_TEMP.putAll(loadConfigDevice())
 
-        try {
-            // loading confired device
-            Config.loadDevices().forEach {
-                DEVICES_TEMP[it.sn] = it
-            }
-        } catch (e: Exception) {
-            XLog.e("AdbUtils", e)
-        }
+        val devices = listDevice()
+
+        devices.putAll(DEVICES_TEMP)
+        // persistent connected devices.
+        Config.saveDevice(DEVICES_TEMP.values.toList())
+        return devices.values.toList()
+    }
+
+    fun listDevice(): MutableMap<String, Device> {
+
+        val devices = mutableMapOf<String, Device>()
 
         // run list device command, this is a long-running operation. it will frozen ui
         val res = CmdUtils.execSync("adb devices -l")
         val lines = res.info.split(NEW_LINE)
-        val devices = HashMap<String, Device>()
 
         lines.filter {
             !it.isBlank() && it.trim() !in LINE_NO_DEVICES
@@ -79,14 +84,8 @@ object AdbUtils {
             }
             devices[device.sn] = device
         }
-        devices.putAll(DEVICES_TEMP)
-        try {
-            // persistent connected devices.
-            Config.saveDevice(DEVICES_TEMP.values.toList())
-        }catch (e:Exception){
-            XLog.e("AdbUtils", e)
-        }
-        return devices.values.toList()
+
+        return devices
     }
 
     fun disconnect(ip: String, port: String): CmdResult {
@@ -97,7 +96,11 @@ object AdbUtils {
         if (port !in USED_ADB_PORT) {
             USED_ADB_PORT.add(port)
         }
-        return CmdUtils.execSync("adb connect $ip${if (port.isBlank()) "" else ":$port"}")
+        val result = CmdUtils.execSync("adb connect $ip${if (port.isBlank()) "" else ":$port"}")
+        if (result.info.contains("unable to connect")) {
+            result.success = false
+        }
+        return result
     }
 
     fun turnTcp(device: Device, port: String): CmdResult {
@@ -154,6 +157,19 @@ object AdbUtils {
 
     fun restartServer() {
         CmdUtils.exec("adb kill-server && adb devices")
+    }
+
+    private fun loadConfigDevice(): MutableMap<String, Device> {
+        val device = mutableMapOf<String, Device>()
+        try {
+            // loading confired device
+            Config.loadDevices().forEach {
+                device[it.sn] = it
+            }
+        } catch (e: Exception) {
+            XLog.e("$TAG.loadConfigDevice", e)
+        }
+        return device
     }
 
     private fun setIpAddress(device: Device) {

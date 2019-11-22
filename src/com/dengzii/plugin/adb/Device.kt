@@ -23,13 +23,14 @@ class Device() {
     var port: String = ""
     var status: Status = Status.UNKNOWN
     var broadcastAddress: String = ""
+    var mark: String = ""
 
     companion object {
         private const val TAG = "Device"
 
         fun fromSerialString(serialString: String): Device? {
             val args = serialString.split("#|#").toTypedArray()
-            if (args.size != 7) {
+            if (args.size != 8) {
                 return null
             }
             return try {
@@ -49,10 +50,11 @@ class Device() {
         this.port = arg[4]
         this.status = Status.DISCONNECTED
         this.broadcastAddress = arg[6]
+        this.mark = arg[7]
     }
 
     fun toSerialString(): String {
-        return arrayOf(sn, ip, model, modelName, port, status.name, broadcastAddress).joinToString("#|#")
+        return arrayOf(sn, ip, model, modelName, port, status.name, broadcastAddress, mark).joinToString("#|#")
     }
 
     fun turnOnTcp(port: String) {
@@ -65,20 +67,28 @@ class Device() {
         }
     }
 
-    fun connect(): CmdResult? {
+    fun connect(): CmdResult {
+        XLog.d("$TAG.connect", "ip=$ip, port=$port, status=$status")
         if (status != Status.CONNECTED && !AdbUtils.isIpConnected(ip)) {
-            var p = 5555
-            while (!AdbUtils.isPortVailable(p.toString())) {
-                p += 2
+
+            if (status == Status.ONLINE) { // connected by usb
+                var p = 5555
+                while (!AdbUtils.isPortVailable(p.toString())) {
+                    p += 2
+                }
+                port = p.toString()
+                XLog.d("$TAG.connect", "turn port $port")
+                AdbUtils.turnTcp(this, port)
             }
-            port = p.toString()
-            AdbUtils.turnTcp(this, port)
-            status = Status.CONNECTED
-            return AdbUtils.connect(ip, port)
+            val result = AdbUtils.connect(ip, port)
+            if (result.success) {
+                status = Status.CONNECTED
+            }
+            return result
         } else {
             XLog.d("$TAG.connect", "device already connected.")
         }
-        return null
+        return CmdResult(-1, "failed.", false)
     }
 
     fun installApk(path: String) {
@@ -108,7 +118,8 @@ class Device() {
                 "modelName='$modelName', " +
                 "port='$port', " +
                 "status=$status, " +
-                "broadcastAddress='$broadcastAddress')"
+                "broadcastAddress='$broadcastAddress'," +
+                "mark=$mark)"
     }
 
     enum class Status {

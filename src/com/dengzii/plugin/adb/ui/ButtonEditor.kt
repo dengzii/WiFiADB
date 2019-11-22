@@ -99,25 +99,37 @@ class ButtonEditor(private val dialog: AdbDialog) : AbstractCellEditor(), TableC
     }
 
     private fun connect(device: Device) {
-        if (wait){
-            return
-        }
+        if (wait) return
+
         dialog.setStatus("Connecting. please wait...")
 
         Thread {
-            device.connect()
+            val result = device.connect()
             wait = false
             Thread.sleep(500)
-            SwingUtilities.invokeLater { dialog.update() }
-            dialog.setStatus("Connected to ${device.ip}:${device.port}")
+            SwingUtilities.invokeLater {
+                dialog.update2()
+                if (result.success){
+                    dialog.setStatus("Connected to ${device.ip}:${device.port}")
+                }else{
+                    dialog.setStatus(result.info)
+                }
+            }
         }.start()
     }
 
     private fun disconnect(device: Device) {
-        device.disconnect()
+        if (wait) return
+
+        dialog.setStatus("Disconnecting. please wait...")
+
         Thread {
+            device.disconnect()
             Thread.sleep(500)
-            SwingUtilities.invokeLater { dialog.update() }
+            SwingUtilities.invokeLater {
+                dialog.update2()
+                dialog.setStatus("disconnect device ${device.ip}:${device.port}")
+            }
         }.start()
     }
 }

@@ -1,5 +1,6 @@
 package com.dengzii.plugin.adb
 
+import com.dengzii.plugin.adb.utils.AdbUtils
 import com.intellij.ide.util.PropertiesComponent
 
 /**
@@ -14,6 +15,7 @@ import com.intellij.ide.util.PropertiesComponent
 
 object Config {
 
+    private val TAG = Config::class.java.simpleName
     private const val KEY_DEVICES = "com.dengzii.plugin.adb.devices"
 
     fun clear() {
@@ -27,18 +29,24 @@ object Config {
         val devices = ArrayList<Device>()
         deviceList?.forEach {
             val device = Device.fromSerialString(it)
-            if (device != null){
+            if (device != null) {
                 devices.add(device)
             }
         }
+        XLog.d("${TAG}.loadConfigDevice", devices.toString())
         return devices
     }
 
     fun saveDevice(devices: List<Device>) {
 
-        val pro = PropertiesComponent.getInstance();
-        val serialList = devices.map { it.toSerialString() }.toTypedArray()
-        pro.setValues(KEY_DEVICES, serialList)
+        XLog.d("$TAG.saveDevice", devices.toString())
+        try {
+            val pro = PropertiesComponent.getInstance();
+            val serialList = devices.map { it.toSerialString() }.toTypedArray()
+            pro.setValues(KEY_DEVICES, serialList)
+        } catch (e: Throwable) {
+            XLog.e("$TAG.saveDevice", e)
+        }
     }
 
 }
