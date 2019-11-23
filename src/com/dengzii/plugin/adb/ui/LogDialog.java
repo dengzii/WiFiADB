@@ -31,7 +31,17 @@ public class LogDialog extends JDialog {
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
 
-    public void show(String log){
+    public static void showAbout() {
+        String about =
+                "\n********************\n" +
+                "AdbWiFi Tool\n" +
+                "(c) dengzii 2019 \n" +
+                "GitHub: https://github.com/MrDenua/WiFiADB\n" +
+                "********************\n";
+        new LogDialog().show(about);
+    }
+
+    public void show(String log) {
         textArea1.setText(log);
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         int w = screen.width / 3;

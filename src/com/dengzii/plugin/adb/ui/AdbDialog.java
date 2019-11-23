@@ -1,6 +1,7 @@
 package com.dengzii.plugin.adb.ui;
 
 import com.dengzii.plugin.adb.Config;
+import com.dengzii.plugin.adb.DialogConfig;
 import com.dengzii.plugin.adb.XLog;
 import com.dengzii.plugin.adb.utils.AdbUtils;
 
@@ -8,17 +9,8 @@ import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 public class AdbDialog extends JDialog implements Runnable {
-
-    private static final String ABOUT =
-            "\n********************\n" +
-                    "AdbWiFi Tool\n" +
-                    "(c) dengzii 2019 \n" +
-                    "GitHub: https://github.com/MrDenua/WiFiADB\n" +
-                    "********************\n";
 
     private JPanel contentPane;
     private JTable table1;
@@ -46,7 +38,7 @@ public class AdbDialog extends JDialog implements Runnable {
         setStatus("Refresh complete");
     }
 
-    public void setStatus(String status){
+    public void setStatus(String status) {
         labelStatus.setText(status);
     }
 
@@ -100,47 +92,59 @@ public class AdbDialog extends JDialog implements Runnable {
     private void initMenu() {
 
         JMenuBar menuBar = new JMenuBar();
-        String[] menus = {"Tools", "About"};
-        String[][] menuItems = {{"Log", "Clear All", "Refresh", "Connect Manual", "Exit"}, {"About"}};
-
-        for (int i = 0; i < menus.length; i++) {
-            JMenu menu = new JMenu(menus[i]);
-            for (int j = 0; j < menuItems[i].length; j++) {
-                JMenuItem menuItem = new JMenuItem(menuItems[i][j]);
-                menu.add(menuItem);
-                menuItem.addMouseListener(new SimpleMouseListener() {
-                    @Override
-                    public void mousePressed(MouseEvent e) {
-                        onMenuClick(((JMenuItem) e.getSource()).getText());
-                    }
-                });
-            }
-            menuBar.add(menu);
-        }
+        menuBar.add(getMain().getMenu());
+        menuBar.add(getAdb().getMenu());
+        menuBar.add(getSettings().getMenu());
+        menuBar.add(getAbout().getMenu());
         setJMenuBar(menuBar);
     }
 
-    private void onMenuClick(String title) {
-        switch (title) {
-            case "Log":
-                new LogDialog().show(XLog.INSTANCE.getLog());
-                break;
-            case "Refresh":
-                update();
-                break;
-            case "Clear All":
-                Config.INSTANCE.clear();
-                break;
-            case "Exit":
-                dispose();
-                break;
-            case "Connect Manual":
-                new ConnectDialog().show(this::update);
-                break;
-            case "About":
-                new LogDialog().show(ABOUT);
-                break;
-        }
+    private Menu getMain() {
+        Menu tools = new Menu("Main");
+        tools.addItem("Log", () -> new LogDialog().show(XLog.INSTANCE.getLog()));
+        tools.addItem("Clear All", Config.INSTANCE::clear);
+        tools.addItem("Refresh", this::update);
+        tools.addItem("Connect Manual", () -> new ConnectDialog().show(this::update));
+        tools.addItem("Exit", this::dispose);
+        return tools;
+    }
+
+    private Menu getAdb() {
+        Menu Adb = new Menu("ADB");
+        Adb.addItem("Restart Server", () -> {
+            AdbUtils.INSTANCE.restartServer();
+            this.update();
+        });
+        Adb.addItem("Kill Server", () -> {
+            AdbUtils.INSTANCE.killServer();
+            this.update();
+        });
+        Adb.addItem("Start Server", () -> {
+            AdbUtils.INSTANCE.startServer();
+            this.update();
+        });
+        return Adb;
+    }
+
+    private Menu getSettings() {
+        Menu settings = new Menu("Settings");
+        settings.addItem("Custom Column", () -> {
+
+        });
+        settings.addItem("Reset Default", () -> {
+            Config.INSTANCE.saveDialogConfig(new DialogConfig());
+            this.initTable();
+            this.update();
+        });
+        return settings;
+    }
+
+    private Menu getAbout() {
+        Menu settings = new Menu("About");
+        settings.addItem("About Tools", LogDialog::showAbout);
+        settings.addItem("Github", () -> {
+        });
+        return settings;
     }
 
     public static void main(String[] args) {
@@ -151,26 +155,5 @@ public class AdbDialog extends JDialog implements Runnable {
         System.exit(0);
     }
 
-    private abstract static class SimpleMouseListener implements MouseListener {
 
-        @Override
-        public void mouseClicked(MouseEvent e) {
-
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-
-        }
-
-        @Override
-        public void mouseEntered(MouseEvent e) {
-
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-
-        }
-    }
 }

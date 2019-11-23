@@ -12,10 +12,10 @@ package com.dengzii.plugin.adb
 
 class DialogConfig() {
 
-    private var width: Int = 10
+    private var width: Int = 0
     private var height: Int = 300
-    private var x: Int = 20
-    private var y: Int = 30
+    private var x: Int = 0
+    private var y: Int = 0
 
     private var col = mutableListOf(COL.SN, COL.NAME, COL.IP, COL.PORT, COL.STATUS)
 
@@ -35,6 +35,9 @@ class DialogConfig() {
     companion object {
 
         fun fromSerialString(string: String): DialogConfig {
+            if (string.trim().isEmpty()) {
+                return DialogConfig()
+            }
             val bounds = string.split("##")[0]
             val col = string.split("##")[1]
             return DialogConfig(col, bounds)
