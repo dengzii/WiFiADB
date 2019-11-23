@@ -18,7 +18,7 @@ class MainAction : AnAction() {
     override fun actionPerformed(anActionEvent: AnActionEvent) {
 
         val dialog = AdbDialog()
-        dialog.update()
+        dialog.updateTable()
         dialog.pack()
         dialog.isVisible = true
     }

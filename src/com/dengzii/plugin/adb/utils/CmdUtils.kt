@@ -6,7 +6,6 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.util.concurrent.TimeUnit
 
 /**
  * <pre>
@@ -64,8 +63,8 @@ object CmdUtils {
         XLog.d("$TAG.execSync", cmd)
         return try {
             val process = Runtime.getRuntime().exec(cmd)
-            resolveErr(process.errorStream)
-            resolve(process)
+            val error = resolveErr(process.errorStream)
+            error ?: resolve(process)
         } catch (e: IOException) {
             XLog.e("$TAG.execSync", e)
             CmdResult()
@@ -103,7 +102,7 @@ object CmdUtils {
         return result
     }
 
-    private fun resolveErr(inputStream: InputStream): CmdResult {
+    private fun resolveErr(inputStream: InputStream): CmdResult? {
         val reader = InputStreamReader(inputStream)
         val bf = BufferedReader(reader)
         try {
@@ -112,6 +111,7 @@ object CmdUtils {
                 XLog.e("$TAG.resolveErr", it)
                 builder.append("$it\n")
             }
+            if (builder.toString().isBlank()) return null
             return CmdResult(-1, builder.toString(), false)
         } catch (e: IOException) {
             XLog.e("$TAG.resolveErr", e)
@@ -122,6 +122,6 @@ object CmdUtils {
                 XLog.e("$TAG.resolveErr", e)
             }
         }
-        return CmdResult()
+        return null
     }
 }

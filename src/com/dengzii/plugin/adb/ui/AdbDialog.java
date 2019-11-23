@@ -1,6 +1,7 @@
 package com.dengzii.plugin.adb.ui;
 
 import com.dengzii.plugin.adb.Config;
+import com.dengzii.plugin.adb.Device;
 import com.dengzii.plugin.adb.DialogConfig;
 import com.dengzii.plugin.adb.XLog;
 import com.dengzii.plugin.adb.utils.AdbUtils;
@@ -9,75 +10,98 @@ import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.List;
 
-public class AdbDialog extends JDialog implements Runnable {
+public class AdbDialog extends JDialog {
 
     private JPanel contentPane;
-    private JTable table1;
+    private JTable deviceTable;
     private JButton buttonRefresh;
     private JLabel labelStatus;
 
     private DeviceTableModel deviceTableModel;
-
-    private static final int TABLE_ROW_HEIGHT = 26;
+    private DialogConfig dialogConfig;
+    private List<Device> deviceList;
 
     public AdbDialog() {
         setContentPane(contentPane);
-        setModal(true);
+        setModal(false);
 
+        contentPane.registerKeyboardAction(
+                e -> {
+                    persistStatus();
+                    dispose();
+                },
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+        );
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                persistStatus();
+                dispose();
+            }
+        });
+        dialogConfig = DialogConfig.Companion.getINSTANCE();
         initDialog();
-        initTable();
-        buttonRefresh.addActionListener(e -> update());
-    }
-
-    @Override
-    public void run() {
-        deviceTableModel.setData(AdbUtils.INSTANCE.getConnectedDeviceList());
-        deviceTableModel.fireTableStructureChanged();
-        initOperateCol();
-        setStatus("Refresh complete");
+        buttonRefresh.addActionListener(e -> updateTable());
     }
 
     public void setStatus(String status) {
         labelStatus.setText(status);
     }
 
-    public void update() {
+    public void updateTable() {
         setStatus("Refreshing, please wait...");
-        new Thread(this).start();
+        new Thread(this::updateTableOnUi).start();
     }
 
-    public void update2() {
-        deviceTableModel.setData(AdbUtils.INSTANCE.getConnectedDeviceList());
+    public void updateTableOnUi() {
+        deviceList = AdbUtils.INSTANCE.getConnectedDeviceList();
+        deviceTableModel.setData(deviceList);
         deviceTableModel.fireTableStructureChanged();
-        initOperateCol();
+        initColumn();
         setStatus("Refresh complete");
     }
 
     private void initTable() {
 
         deviceTableModel = new DeviceTableModel();
-        deviceTableModel.setColumnCount(7);
-        table1.setModel(deviceTableModel);
-        table1.setRowHeight(TABLE_ROW_HEIGHT);
-        table1.setColumnSelectionAllowed(false);
-        table1.setRowSelectionAllowed(false);
+        deviceTableModel.setColumnCount(dialogConfig.getCol().size());
+        deviceTable.setModel(deviceTableModel);
+        deviceTable.setRowHeight(DialogConfig.ROW_HEIGHT);
+        deviceTable.setColumnSelectionAllowed(false);
+        deviceTable.setRowSelectionAllowed(false);
+        initColumn();
     }
 
-    private void initOperateCol() {
-        table1.getColumnModel()
-                .getColumn(6)
+    private void initColumn() {
+        deviceTableModel.fireTableStructureChanged();
+        // setup table column width from persisted status
+        for (int i = 0; i < dialogConfig.getCol().size(); i++) {
+            TableColumn tableColumn = deviceTable.getColumnModel().getColumn(i);
+            String colName = dialogConfig.getCol().get(i).name().toLowerCase();
+            int width = dialogConfig.getColWidth().getOrDefault(colName, 0);
+            if (width != 0) {
+                tableColumn.setPreferredWidth(width);
+            }
+        }
+        int buttonCol = dialogConfig.getCol().indexOf(DialogConfig.COL.OPERATE);
+        if (buttonCol < 0) return;
+        deviceTable.getColumnModel()
+                .getColumn(buttonCol)
                 .setCellEditor(new ButtonEditor(this));
-        TableColumn column = table1.getColumnModel().getColumn(6);
+        TableColumn column = deviceTable.getColumnModel().getColumn(buttonCol);
         column.setCellRenderer(new ButtonEditor(this));
     }
 
     private void initDialog() {
         Dimension screen = getToolkit().getScreenSize();
-        int w = screen.width / 2;
-        int h = 300;
-        int x = screen.width / 2 - w / 2;
-        int y = screen.height / 2 - h;
+        int w = dialogConfig.getWidth() == 0 ? screen.width / 2 : dialogConfig.getWidth();
+        int h = dialogConfig.getHeight() == 0 ? 300 : dialogConfig.getHeight();
+        int x = dialogConfig.getX() == 0 ? screen.width / 2 - w / 2 : dialogConfig.getX();
+        int y = dialogConfig.getY() == 0 ? screen.height / 2 - h : dialogConfig.getY();
         setLocation(x, y);
         contentPane.setPreferredSize(new Dimension(w, h));
 
@@ -87,6 +111,40 @@ public class AdbDialog extends JDialog implements Runnable {
                 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
                 JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         initMenu();
+        initTable();
+    }
+
+    private void persistStatus() {
+        dialogConfig.setHeight(getHeight());
+        dialogConfig.setWidth(getWidth());
+        dialogConfig.setX(getX());
+        dialogConfig.setY(getY());
+
+        int markColIndex = -1;
+        try {
+            for (int i = 0; i < dialogConfig.getCol().size(); i++) {
+                TableColumn column = deviceTable.getColumnModel().getColumn(i);
+                DialogConfig.COL c = DialogConfig.COL.valueOf(column.getHeaderValue().toString().toUpperCase());
+                if (c.equals(DialogConfig.COL.MARK)) {
+                    markColIndex = i;
+                }
+                dialogConfig.getColWidth().put(c.name().toLowerCase(), column.getWidth());
+                dialogConfig.getCol().remove(c);
+                dialogConfig.getCol().add(c);
+            }
+            Config.INSTANCE.saveDialogConfig(dialogConfig);
+
+            if (markColIndex >= 0) {
+                for (int i = 0; i < deviceList.size(); i++) {
+                    String mark = deviceTable.getValueAt(i, markColIndex).toString();
+                    deviceList.get(i).setMark(mark);
+                    System.out.println(deviceList.get(i));
+                }
+            }
+            Config.INSTANCE.saveDevice(deviceList);
+        } catch (Throwable t) {
+            XLog.INSTANCE.e("AdbDialog.persistStatus", t);
+        }
     }
 
     private void initMenu() {
@@ -103,8 +161,8 @@ public class AdbDialog extends JDialog implements Runnable {
         Menu tools = new Menu("Main");
         tools.addItem("Log", () -> new LogDialog().show(XLog.INSTANCE.getLog()));
         tools.addItem("Clear All", Config.INSTANCE::clear);
-        tools.addItem("Refresh", this::update);
-        tools.addItem("Connect Manual", () -> new ConnectDialog().show(this::update));
+        tools.addItem("Refresh", this::updateTable);
+        tools.addItem("Connect Manual", () -> new ConnectDialog().show(this::updateTable));
         tools.addItem("Exit", this::dispose);
         return tools;
     }
@@ -113,15 +171,15 @@ public class AdbDialog extends JDialog implements Runnable {
         Menu Adb = new Menu("ADB");
         Adb.addItem("Restart Server", () -> {
             AdbUtils.INSTANCE.restartServer();
-            this.update();
+            this.updateTable();
         });
         Adb.addItem("Kill Server", () -> {
             AdbUtils.INSTANCE.killServer();
-            this.update();
+            this.updateTable();
         });
         Adb.addItem("Start Server", () -> {
             AdbUtils.INSTANCE.startServer();
-            this.update();
+            this.updateTable();
         });
         return Adb;
     }
@@ -129,12 +187,18 @@ public class AdbDialog extends JDialog implements Runnable {
     private Menu getSettings() {
         Menu settings = new Menu("Settings");
         settings.addItem("Custom Column", () -> {
-
+            ConfigDialog.create(() -> {
+                initTable();
+                updateTable();
+                initColumn();
+            });
         });
         settings.addItem("Reset Default", () -> {
             Config.INSTANCE.saveDialogConfig(new DialogConfig());
-            this.initTable();
-            this.update();
+            dialogConfig = Config.INSTANCE.loadDialogConfig();
+            initTable();
+            updateTable();
+            initColumn();
         });
         return settings;
     }
@@ -149,7 +213,7 @@ public class AdbDialog extends JDialog implements Runnable {
 
     public static void main(String[] args) {
         AdbDialog dialog = new AdbDialog();
-        dialog.update();
+        dialog.updateTable();
         dialog.pack();
         dialog.setVisible(true);
         System.exit(0);

@@ -46,6 +46,7 @@ object Config {
             pro.setValues(KEY_DEVICES, serialList)
         } catch (e: Throwable) {
             XLog.e("$TAG.saveDevice", e)
+            PropertiesComponent.getInstance().unsetValue(KEY_DEVICES)
         }
     }
 
@@ -54,7 +55,13 @@ object Config {
     }
 
     fun loadDialogConfig(): DialogConfig {
-        return DialogConfig.fromSerialString(PropertiesComponent.getInstance().getValue(KEY_DIALOG_CONFIG, ""))
+        return try {
+            DialogConfig.fromSerialString(PropertiesComponent.getInstance().getValue(KEY_DIALOG_CONFIG, ""))
+        } catch (t: Throwable) {
+            XLog.e("$TAG.saveDevice", t)
+            PropertiesComponent.getInstance().unsetValue(KEY_DIALOG_CONFIG)
+            DialogConfig()
+        }
     }
 }
 

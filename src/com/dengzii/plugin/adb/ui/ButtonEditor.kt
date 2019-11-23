@@ -108,7 +108,7 @@ class ButtonEditor(private val dialog: AdbDialog) : AbstractCellEditor(), TableC
             wait = false
             Thread.sleep(500)
             SwingUtilities.invokeLater {
-                dialog.update2()
+                dialog.updateTableOnUi()
                 if (result.success){
                     dialog.setStatus("Connected to ${device.ip}:${device.port}")
                 }else{
@@ -127,7 +127,7 @@ class ButtonEditor(private val dialog: AdbDialog) : AbstractCellEditor(), TableC
             device.disconnect()
             Thread.sleep(500)
             SwingUtilities.invokeLater {
-                dialog.update2()
+                dialog.updateTableOnUi()
                 dialog.setStatus("disconnect device ${device.ip}:${device.port}")
             }
         }.start()

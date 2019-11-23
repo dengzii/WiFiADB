@@ -1,6 +1,8 @@
 package com.dengzii.plugin.adb.ui
 
 import com.dengzii.plugin.adb.Device
+import com.dengzii.plugin.adb.DialogConfig
+import java.util.*
 import javax.swing.table.DefaultTableModel
 
 /**
@@ -14,18 +16,33 @@ import javax.swing.table.DefaultTableModel
  */
 class DeviceTableModel : DefaultTableModel() {
 
-
-    companion object {
-        private val TABLE_HEADER = arrayOf("Name", "Model_Name", "Model", "IP", "Port", "Status", "Operate")
-    }
+    private val dialogConfig = DialogConfig.INSTANCE
+    private val tableHeader = dialogConfig.col
+    private val editableCol = arrayOf(
+            dialogConfig.col.indexOf(DialogConfig.COL.OPERATE),
+            dialogConfig.col.indexOf(DialogConfig.COL.MARK)
+    )
 
     fun setData(devices: List<Device>) {
         while (rowCount > 0) {
             removeRow(0)
         }
         fireTableDataChanged()
-        devices.forEach {
-            addRow(arrayOf(it.sn, it.model, it.modelName, it.ip, it.port, it.status.name, it))
+        devices.forEach { device ->
+            val rowList = ArrayList<Any>()
+            dialogConfig.col.forEach { c ->
+                rowList.add(when (c) {
+                    DialogConfig.COL.SN -> device.sn
+                    DialogConfig.COL.MODEL_NAME -> device.modelName
+                    DialogConfig.COL.NAME -> device.model
+                    DialogConfig.COL.IP -> device.ip
+                    DialogConfig.COL.PORT -> device.port
+                    DialogConfig.COL.STATUS -> device.status
+                    DialogConfig.COL.MARK -> device.mark
+                    DialogConfig.COL.OPERATE -> device
+                })
+            }
+            addRow(rowList.toArray())
         }
         fireTableDataChanged()
     }
@@ -35,14 +52,14 @@ class DeviceTableModel : DefaultTableModel() {
     }
 
     override fun getColumnCount(): Int {
-        return 7
+        return dialogConfig.col.size
     }
 
     override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean {
-        return columnIndex == 6
+        return columnIndex in editableCol
     }
 
     override fun getColumnName(column: Int): String {
-        return TABLE_HEADER[column]
+        return tableHeader[column].name.toLowerCase()
     }
 }

@@ -80,6 +80,7 @@ object AdbUtils {
                 if (device.ip !in DEVICES_CONNECTED) {
                     DEVICES_CONNECTED.add(device.ip)
                 }
+                device.mark = DEVICES_TEMP.getOrDefault(device.sn, device).mark
                 DEVICES_TEMP[device.sn] = device
             }
             devices[device.sn] = device
@@ -97,7 +98,7 @@ object AdbUtils {
             USED_ADB_PORT.add(port)
         }
         val result = CmdUtils.execSync("adb connect $ip${if (port.isBlank()) "" else ":$port"}")
-        if (result.info.contains("unable to connect")) {
+        if (!result.info.contains("connected to")) {
             result.success = false
         }
         return result
