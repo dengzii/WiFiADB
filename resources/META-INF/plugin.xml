@@ -3,10 +3,10 @@
     <id>com.dengzii.plugin.adb</id>
     <name>Android WiFiADB</name>
 
-    <version>1.2</version>
+    <version>2.0</version>
     <vendor email="denua@foxmail.com" url="https://dengzii.com">dengzi</vendor>
     <description><![CDATA[
-<h3>An plugin use for connect android device by WiFi.</h3>
+<h3>A plugin use for connect android device by WiFi.</h3>
 
 <b>Usage: </b>
 <p>- Please ensure your complete has install adb shell.
@@ -29,6 +29,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
+      2.0: Update : custom column support, persist ui status, more menu option, more feature.
       1.2: Fix bug: frozen ui when loading device and connecting device.<br>
       1.1: Fix bug: con't load device.<br>
       1.0: A plugin use for connect android device by WiFi.<br>
