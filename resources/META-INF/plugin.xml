@@ -29,6 +29,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
+      2.2: Feature: support configure adb path. <br>
       2.1: Fix bug: 'Cannot run program "adb"' problem on MacOS.<br>
       2.0: Update : custom column support, persist ui status, more menu option, more feature.<br>
       1.2: Fix bug: frozen ui when loading device and connecting device.<br>

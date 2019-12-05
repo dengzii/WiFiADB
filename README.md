@@ -22,6 +22,7 @@ In your IntelliJ IDE, Nav > File > Settings > Plugins > Search WiFiADB
 
 ### Change Log
 
+- 2.2: Feature: support configure adb path.
 - 2.1: Fix bug: 'Cannot run program "adb"' problem on MacOS.
 - 2.0: Update : custom column support, persist ui status, more menu option, more feature.
 - 1.2: Fix bug: frozen ui when loading device and connecting device.
