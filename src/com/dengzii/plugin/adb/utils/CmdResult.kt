@@ -11,6 +11,6 @@ package com.dengzii.plugin.adb.utils
  */
 class CmdResult(
         var exitCode: Int = 0,
-        var info: String = "",
+        var output: String = "",
         var success: Boolean = false
 )

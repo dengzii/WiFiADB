@@ -33,18 +33,6 @@ object CmdUtils {
 //
 //    }
 
-    fun adbShell(sh: String, listener: CmdListener?) {
-        exec("adb shell $sh", listener)
-    }
-
-    fun adbShellSync(device: Device, sh: String): CmdResult {
-        return execSync("adb -s ${device.sn} shell $sh")
-    }
-
-    fun adbShell(device: Device, sh: String, listener: CmdListener?) {
-        exec("adb -s ${device.sn} shell $sh", listener)
-    }
-
     fun exec(cmd: String, listener: CmdListener? = null) {
 
         XLog.d("$TAG.exec", cmd)
@@ -52,7 +40,7 @@ object CmdUtils {
             val process = Runtime.getRuntime().exec(cmd)
             Thread(Runnable {
                 val result = resolve(process)
-                listener?.onExecuted(result.success, result.exitCode, result.info)
+                listener?.onExecuted(result.success, result.exitCode, result.output)
             }).start()
         } catch (e: IOException) {
             e.message?.let { listener?.onExecuted(false, -1, it) }
@@ -85,16 +73,16 @@ object CmdUtils {
                 builder.append("$it\n")
             }
             result.success = true
-            result.info = builder.toString()
+            result.output = builder.toString()
         } catch (e: IOException) {
             XLog.e("$TAG.resolve", e)
-            result.info = e.message ?: e.localizedMessage
+            result.output = e.message ?: e.localizedMessage
         } finally {
             try {
                 input.close()
             } catch (e: IOException) {
                 XLog.e("$TAG.resolveSync", e)
-                result.info = e.message ?: e.localizedMessage
+                result.output = e.message ?: e.localizedMessage
             }
         }
         result.exitCode = process.exitValue()

@@ -108,7 +108,7 @@ class Device() {
     }
 
     private fun shell(cmd: String, listener: CmdListener? = null) {
-        CmdUtils.adbShell(this, cmd, listener)
+        AdbUtils.adbShell(this, cmd, listener)
     }
 
     override fun toString(): String {

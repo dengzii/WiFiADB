@@ -42,6 +42,20 @@ object AdbUtils {
     private val USED_ADB_PORT = mutableListOf<String>()
     private val DEVICES_TEMP = HashMap<String, Device>()
 
+    private var adb = "adb"
+
+    init {
+
+        val os = System.getProperty("os.name")
+        adb = if (os.contains("Mac OS")) {
+            CmdUtils.execSync("which adb").output
+        } else if (os.contains("Windows")) {
+            CmdUtils.execSync("where adb").output
+        } else {
+            "adb"
+        }.replace(NEW_LINE, "")
+    }
+
     fun getConnectedDeviceList(): List<Device> {
 
         // clear exist device list
@@ -63,8 +77,8 @@ object AdbUtils {
         val devices = mutableMapOf<String, Device>()
 
         // run list device command, this is a long-running operation. it will frozen ui
-        val res = CmdUtils.execSync("adb devices -l")
-        val lines = res.info.split(NEW_LINE)
+        val res = CmdUtils.execSync("$adb devices -l")
+        val lines = res.output.split(NEW_LINE)
 
         lines.filter {
             !it.isBlank() && it.trim() !in LINE_NO_DEVICES
@@ -90,27 +104,27 @@ object AdbUtils {
     }
 
     fun disconnect(ip: String, port: String): CmdResult {
-        return CmdUtils.execSync("adb disconnect $ip:$port")
+        return CmdUtils.execSync("$adb disconnect $ip:$port")
     }
 
     fun connect(ip: String, port: String): CmdResult {
         if (port !in USED_ADB_PORT) {
             USED_ADB_PORT.add(port)
         }
-        val result = CmdUtils.execSync("adb connect $ip${if (port.isBlank()) "" else ":$port"}")
-        if (!result.info.contains("connected to")) {
+        val result = CmdUtils.execSync("$adb connect $ip${if (port.isBlank()) "" else ":$port"}")
+        if (!result.output.contains("connected to")) {
             result.success = false
         }
         return result
     }
 
     fun turnTcp(device: Device, port: String): CmdResult {
-        return CmdUtils.execSync("adb -s ${device.sn} tcpip $port")
+        return CmdUtils.execSync("$adb -s ${device.sn} tcpip $port")
     }
 
     fun screenRecord(device: Device, local: String, listener: CmdListener?) {
         val filePath = "$SCREEN_RECORD_PATH${System.currentTimeMillis()}.mp4"
-        CmdUtils.adbShellSync(device, "screenrecord " +
+        adbShellSync(device, "screenrecord " +
                 " --time-limit $SCREEN_RECORD_TIME_SECOND" +
                 " --bit-rate $SCREEN_RECORD_BIT_RATE" +
                 " --verbose " +
@@ -120,28 +134,28 @@ object AdbUtils {
 
     fun screenCap(device: Device, local: String, listener: CmdListener?) {
         val filePath = "$SCREEN_CAP_PATH${System.currentTimeMillis()}.png"
-        CmdUtils.adbShell("screencap $filePath", listener)
+        adbShell("screencap $filePath", listener)
         pull(device, filePath, local, listener)
     }
 
     fun installApk(device: Device, path: String, listener: CmdListener?) {
-        CmdUtils.exec("adb -s ${device.sn} install $path", listener)
+        CmdUtils.exec("$adb -s ${device.sn} install $path", listener)
     }
 
     fun startServer() {
-        CmdUtils.execSync("adb start-server")
+        CmdUtils.execSync("$adb start-server")
     }
 
     fun killServer() {
-        CmdUtils.execSync("adb kill-server")
+        CmdUtils.execSync("$adb kill-server")
     }
 
     fun start(device: Device, listener: CmdListener?) {
-        CmdUtils.exec("adb -s ${device.sn} start", listener)
+        CmdUtils.exec("$adb -s ${device.sn} start", listener)
     }
 
     fun pull(device: Device, remote: String, local: String, listener: CmdListener?) {
-        CmdUtils.exec("adb -s ${device.sn} pull $remote $local", listener)
+        CmdUtils.exec("$adb -s ${device.sn} pull $remote $local", listener)
     }
 
     fun isPortVailable(port: String): Boolean {
@@ -157,7 +171,19 @@ object AdbUtils {
     }
 
     fun restartServer() {
-        CmdUtils.exec("adb kill-server && adb devices")
+        CmdUtils.exec("$adb kill-server && $adb devices")
+    }
+
+    fun adbShell(sh: String, listener: CmdListener?) {
+        CmdUtils.exec("adb shell $sh", listener)
+    }
+
+    fun adbShellSync(device: Device, sh: String): CmdResult {
+        return CmdUtils.execSync("adb -s ${device.sn} shell $sh")
+    }
+
+    fun adbShell(device: Device, sh: String, listener: CmdListener?) {
+        CmdUtils.exec("adb -s ${device.sn} shell $sh", listener)
     }
 
     private fun loadConfigDevice(): MutableMap<String, Device> {
@@ -174,8 +200,8 @@ object AdbUtils {
     }
 
     private fun setIpAddress(device: Device) {
-        val res = CmdUtils.adbShellSync(device, "ifconfig wlan0")
-        val matcher = PATTERN_INET_ADDR.matcher(res.info)
+        val res = adbShellSync(device, "ifconfig wlan0")
+        val matcher = PATTERN_INET_ADDR.matcher(res.output)
         if (matcher.find()) {
             device.ip = matcher.group(1)
             device.broadcastAddress = matcher.group(9)
