@@ -9,27 +9,28 @@
 <h3>A plugin use for connect android device by WiFi.</h3>
 
 <b>Usage: </b>
-<p>- Please ensure your complete has install adb shell.
-    verify it by typing command 'adb' in the terminal or CMD.
-    Reference here -><a href="https://developer.android.google.cn/studio/command-line/adb#top_of_page">
+<p>- Please ensure your computer has configure adb in system PATH.
+    verify it by typing command 'adb' in the terminal or cmd.
+    more about adb reference here -><a href="https://developer.android.google.cn/studio/command-line/adb#top_of_page">
     Android Debug Bridge</a></p>
 <p>- Open WiFiADB tools from NavBar > Tools > WiFiADB, or use keyboard-shortcut Ctrl+Alt+2</p>
 <p>- Connect your Android device to compute by USB, click Refresh button, you will see your device in table.
     click connect, it will remember your connection configure.</p>
-<p>- If you does not find your devices, please see log from MenuBar Tools > Log </p>
+<p>- If you does not find your devices, you can find reason from MenuBar Tools > Log </p>
+<p>- This tool does not compact to Android 10 </p>
 <b>Contribute</b>
 <p>Using WiFi connect android device help us get rid of the usb cable.
     I had tried other similar tool, but they are not faultless.</p>
 <p>GitHub : <a href="https://github.com/MrDenua/WiFiADB">WiFiADB</a></p>
 <p>Issue : if you have any questions, please <a href="https://github.com/MrDenua/WiFiADB/issues"> create issue.</a></p>
-
 <b>Screenshot</b>
 <br><br>
 <img src="https://raw.githubusercontent.com/MrDenua/WiFiADB/master/screen_shot/adb_wifi.png">
     ]]></description>
 
     <change-notes><![CDATA[
-      2.0: Update : custom column support, persist ui status, more menu option, more feature.
+      2.1: Fix bug: 'Cannot run program "adb"' problem on MacOS.<br>
+      2.0: Update : custom column support, persist ui status, more menu option, more feature.<br>
       1.2: Fix bug: frozen ui when loading device and connecting device.<br>
       1.1: Fix bug: con't load device.<br>
       1.0: A plugin use for connect android device by WiFi.<br>
