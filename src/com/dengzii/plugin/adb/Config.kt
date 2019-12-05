@@ -17,9 +17,19 @@ object Config {
     private val TAG = Config::class.java.simpleName
     private const val KEY_DEVICES = "com.dengzii.plugin.adb.devices"
     private const val KEY_DIALOG_CONFIG = "com.dengzii.plugin.adb.config.dialog"
+    private const val KEY_ABD = "com.dengzii.plugin.adb.config.adb"
 
     fun clear() {
         PropertiesComponent.getInstance().unsetValue(KEY_DEVICES)
+    }
+
+    fun loadAdbPath(): String {
+        val pro = PropertiesComponent.getInstance()
+        return pro.getValue(KEY_ABD) ?: "adb"
+    }
+
+    fun saveAdbPath(path: String) {
+        PropertiesComponent.getInstance().setValue(KEY_ABD, path)
     }
 
     fun loadDevices(): List<Device> {

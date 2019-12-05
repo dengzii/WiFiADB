@@ -5,6 +5,7 @@ import com.dengzii.plugin.adb.Device;
 import com.dengzii.plugin.adb.DialogConfig;
 import com.dengzii.plugin.adb.XLog;
 import com.dengzii.plugin.adb.utils.AdbUtils;
+import com.dengzii.plugin.adb.utils.CmdUtils;
 
 import javax.swing.*;
 import javax.swing.table.TableColumn;
@@ -46,6 +47,9 @@ public class AdbDialog extends JDialog {
         dialogConfig = DialogConfig.Companion.getINSTANCE();
         initDialog();
         buttonRefresh.addActionListener(e -> updateTable());
+        if (!AdbUtils.INSTANCE.isAdbAvailable()){
+            ConfigAdbDialog.createAndShow();
+        }
     }
 
     public void setStatus(String status) {
@@ -186,6 +190,7 @@ public class AdbDialog extends JDialog {
 
     private Menu getSettings() {
         Menu settings = new Menu("Settings");
+        settings.addItem("Configure Adb Path", ConfigAdbDialog::createAndShow);
         settings.addItem("Custom Column", () -> {
             ConfigDialog.create(() -> {
                 initTable();

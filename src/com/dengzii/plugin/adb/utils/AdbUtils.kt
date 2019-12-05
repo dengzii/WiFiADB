@@ -42,18 +42,14 @@ object AdbUtils {
     private val USED_ADB_PORT = mutableListOf<String>()
     private val DEVICES_TEMP = HashMap<String, Device>()
 
-    private var adb = "adb"
+    private var adb = Config.loadAdbPath()
 
-    init {
+    fun reloadAdbPath(){
+        adb = Config.loadAdbPath()
+    }
 
-        val os = System.getProperty("os.name")
-        adb = if (os.contains("Mac OS")) {
-            CmdUtils.execSync("which adb").output
-        } else if (os.contains("Windows")) {
-            CmdUtils.execSync("where adb").output
-        } else {
-            "adb"
-        }.replace(NEW_LINE, "")
+    fun isAdbAvailable(): Boolean {
+        return CmdUtils.execSync("$adb version").output.contains("Android Debug Bridge")
     }
 
     fun getConnectedDeviceList(): List<Device> {
