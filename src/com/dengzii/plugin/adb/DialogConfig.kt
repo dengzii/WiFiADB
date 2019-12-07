@@ -21,7 +21,7 @@ class DialogConfig() {
     var colWidth = mutableMapOf(Pair("default", 0))
 
     companion object {
-        const val ROW_HEIGHT = 26
+        const val ROW_HEIGHT = 30
         val INSTANCE by lazy { Config.loadDialogConfig() }
 
         fun fromSerialString(string: String): DialogConfig {
