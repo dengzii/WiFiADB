@@ -36,8 +36,7 @@ object AdbUtils {
     private const val SCREEN_RECORD_BIT_RATE = 4000000
 
     private const val REGEX_IP = "((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}"
-    private val PATTERN_INET_ADDR = Pattern.compile("inet addr:($REGEX_IP) {2}Bcast:($REGEX_IP)")
-
+    private val PATTERN_INET_ADDR = Pattern.compile("inet ($REGEX_IP)/24 brd ($REGEX_IP)")
     private val DEVICES_CONNECTED = ArrayList<String>()
     private val USED_ADB_PORT = mutableListOf<String>()
     private val DEVICES_TEMP = HashMap<String, Device>()
@@ -60,12 +59,11 @@ object AdbUtils {
         DEVICES_TEMP.clear()
         DEVICES_TEMP.putAll(loadConfigDevice())
 
-        val devices = listDevice()
+        DEVICES_TEMP.putAll(listDevice())
 
-        devices.putAll(DEVICES_TEMP)
         // persistent connected devices.
         Config.saveDevice(DEVICES_TEMP.values.toList())
-        return devices.values.toList()
+        return DEVICES_TEMP.values.toList()
     }
 
     fun listDevice(): MutableMap<String, Device> {
@@ -196,11 +194,15 @@ object AdbUtils {
     }
 
     private fun setIpAddress(device: Device) {
-        val res = adbShellSync(device, "ifconfig wlan0")
-        val matcher = PATTERN_INET_ADDR.matcher(res.output)
-        if (matcher.find()) {
-            device.ip = matcher.group(1)
-            device.broadcastAddress = matcher.group(9)
+        val res = adbShellSync(device, "ip addr show wlan0")
+        try {
+            val matcher = PATTERN_INET_ADDR.matcher(res.output)
+            if (matcher.find()) {
+                device.ip = matcher.group(1)
+//            device.broadcastAddress = matcher.group(9)
+            }
+        }catch (e:Exception){
+            XLog.e(TAG, e)
         }
     }
 
