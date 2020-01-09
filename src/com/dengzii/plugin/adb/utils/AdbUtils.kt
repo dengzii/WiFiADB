@@ -169,15 +169,15 @@ object AdbUtils {
     }
 
     fun adbShell(sh: String, listener: CmdListener?) {
-        CmdUtils.exec("adb shell $sh", listener)
+        CmdUtils.exec("$adb shell $sh", listener)
     }
 
     fun adbShellSync(device: Device, sh: String): CmdResult {
-        return CmdUtils.execSync("adb -s ${device.sn} shell $sh")
+        return CmdUtils.execSync("$adb -s ${device.sn} shell $sh")
     }
 
     fun adbShell(device: Device, sh: String, listener: CmdListener?) {
-        CmdUtils.exec("adb -s ${device.sn} shell $sh", listener)
+        CmdUtils.exec("$adb -s ${device.sn} shell $sh", listener)
     }
 
     private fun loadConfigDevice(): MutableMap<String, Device> {

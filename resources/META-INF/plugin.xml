@@ -3,7 +3,7 @@
     <id>com.dengzii.plugin.adb</id>
     <name>Android WiFiADB</name>
 
-    <version>2.3</version>
+    <version>2.4</version>
     <vendor email="denua@foxmail.com" url="https://dengzii.com">dengzi</vendor>
     <description><![CDATA[
 <h3>A plugin use for connect android device by WiFi.</h3>
@@ -29,6 +29,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
+      2.4: Fix: unable to get device ip address. <br>
       2.3: Update: compatible with Android 10. <br>
       2.2: Feature: support configure adb path. <br>
       2.1: Fix bug: 'Cannot run program "adb"' problem on MacOS.<br>
