@@ -21,7 +21,8 @@ Another way is copy this plugin file into IDE's install path /_InstalliJIDE_/plu
 In your IntelliJ IDE, Nav > File > Settings > Plugins > Search WiFiADB
 
 ### Change Log
-
+- 2.5: Feature: delete device config support.
+- 2.4: Fix: unable to get device ip address.
 - 2.3: Update: compatible with Android 10.
 - 2.2: Feature: support configure adb path.
 - 2.1: Fix bug: 'Cannot run program "adb"' problem on MacOS.
