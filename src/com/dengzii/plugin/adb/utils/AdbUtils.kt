@@ -63,7 +63,7 @@ object AdbUtils {
 
         // persistent connected devices.
         Config.saveDevice(DEVICES_TEMP.values.toList())
-        return DEVICES_TEMP.values.toList()
+        return DEVICES_TEMP.values.toMutableList()
     }
 
     fun listDevice(): MutableMap<String, Device> {

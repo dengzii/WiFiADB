@@ -86,7 +86,7 @@ public class AdbDialog extends JDialog {
                         put("Delete", () -> {
                             int row = deviceTable.rowAtPoint(e.getPoint());
                             deviceList.remove(row);
-                            Config.INSTANCE.saveDevice(deviceList);
+                            persistStatus();
                             updateTableOnUi();
                         });
                     }});
