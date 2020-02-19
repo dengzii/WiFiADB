@@ -5,14 +5,14 @@ import com.dengzii.plugin.adb.Device;
 import com.dengzii.plugin.adb.DialogConfig;
 import com.dengzii.plugin.adb.XLog;
 import com.dengzii.plugin.adb.utils.AdbUtils;
-import com.dengzii.plugin.adb.utils.CmdUtils;
+import com.dengzii.plugin.adb.utils.PopMenuUtils;
+import com.intellij.openapi.ui.JBPopupMenu;
 
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
+import java.util.HashMap;
 import java.util.List;
 
 public class AdbDialog extends JDialog {
@@ -47,7 +47,7 @@ public class AdbDialog extends JDialog {
         dialogConfig = DialogConfig.Companion.getINSTANCE();
         initDialog();
         buttonRefresh.addActionListener(e -> updateTable());
-        if (!AdbUtils.INSTANCE.isAdbAvailable()){
+        if (!AdbUtils.INSTANCE.isAdbAvailable()) {
             ConfigAdbDialog.createAndShow();
         }
     }
@@ -77,6 +77,23 @@ public class AdbDialog extends JDialog {
         deviceTable.setRowHeight(DialogConfig.ROW_HEIGHT);
         deviceTable.setColumnSelectionAllowed(false);
         deviceTable.setRowSelectionAllowed(false);
+        deviceTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                if (e.getButton() == MouseEvent.BUTTON3) {
+                    JBPopupMenu menu = PopMenuUtils.INSTANCE.create(new HashMap<String, PopMenuUtils.PopMenuListener>() {{
+                        put("Delete", () -> {
+                            int row = deviceTable.rowAtPoint(e.getPoint());
+                            deviceList.remove(row);
+                            Config.INSTANCE.saveDevice(deviceList);
+                            updateTableOnUi();
+                        });
+                    }});
+                    menu.show(deviceTable, e.getX(), e.getY());
+                }
+            }
+        });
         initColumn();
     }
 
