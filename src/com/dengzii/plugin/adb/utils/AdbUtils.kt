@@ -43,7 +43,7 @@ object AdbUtils {
 
     private var adb = Config.loadAdbPath()
 
-    fun reloadAdbPath(){
+    fun reloadAdbPath() {
         adb = Config.loadAdbPath()
     }
 
@@ -214,8 +214,8 @@ object AdbUtils {
         val device = Device()
         device.sn = part[0]
         device.status = Device.Status.getStatus(part.elementAtOrElse(1) { "unknown" })
-        device.modelName = part.elementAtOrElse(2) { "-:-" }.split(":")[1]
-        device.model = part.elementAtOrElse(3) { "-:-" }.split(":")[1]
+        device.modelName = part.elementAtOrElse(2) { "-:-" }.split(":").elementAtOrElse(1) { "-" }
+        device.model = part.elementAtOrElse(3) { "-:-" }.split(":").elementAtOrElse(1) { "-" }
 
         // connected by wlan
         if (device.sn.contains(":")) {
