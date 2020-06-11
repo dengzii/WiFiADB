@@ -52,6 +52,14 @@ public class AdbDialog extends JDialog {
         }
     }
 
+    public static void main(String[] args) {
+        AdbDialog dialog = new AdbDialog();
+        dialog.updateTable();
+        dialog.pack();
+        dialog.setVisible(true);
+        System.exit(0);
+    }
+
     public void setStatus(String status) {
         labelStatus.setText(status);
     }
@@ -119,7 +127,7 @@ public class AdbDialog extends JDialog {
 
     private void initDialog() {
         Dimension screen = getToolkit().getScreenSize();
-        int w = dialogConfig.getWidth() == 0 ? screen.width / 2 : dialogConfig.getWidth();
+        int w = dialogConfig.getWidth() == 0 ? 550 : dialogConfig.getWidth();
         int h = dialogConfig.getHeight() == 0 ? 300 : dialogConfig.getHeight();
         int x = dialogConfig.getX() == 0 ? screen.width / 2 - w / 2 : dialogConfig.getX();
         int y = dialogConfig.getY() == 0 ? screen.height / 2 - h : dialogConfig.getY();
@@ -231,14 +239,6 @@ public class AdbDialog extends JDialog {
         settings.addItem("Github", () -> {
         });
         return settings;
-    }
-
-    public static void main(String[] args) {
-        AdbDialog dialog = new AdbDialog();
-        dialog.updateTable();
-        dialog.pack();
-        dialog.setVisible(true);
-        System.exit(0);
     }
 
 

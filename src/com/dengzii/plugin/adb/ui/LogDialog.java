@@ -44,7 +44,7 @@ public class LogDialog extends JDialog {
     public void show(String log) {
         textArea1.setText(log);
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-        int w = screen.width / 3;
+        int w = 500;
         int h = 300;
         int x = screen.width / 2 - w / 2;
         int y = screen.height / 2 - h;

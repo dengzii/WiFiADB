@@ -82,22 +82,22 @@ public class ConfigDialog extends JDialog {
         setTitle("Custom Column");
     }
 
+    public static void create(CallBack callBack) {
+        JDialog dialog = new ConfigDialog(callBack);
+        dialog.pack();
+        dialog.setVisible(true);
+    }
+
     @Override
     public void pack() {
         super.pack();
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         int w = getWidth();
         int h = getHeight();
-        int x = screen.width / 2 - w / 2;
+        int x = 400 - w / 2;
         int y = screen.height / 2 - h;
         setLocation(x, y);
         setPreferredSize(new Dimension(w, h));
-    }
-
-    public static void create(CallBack callBack) {
-        JDialog dialog = new ConfigDialog(callBack);
-        dialog.pack();
-        dialog.setVisible(true);
     }
 
     interface CallBack {

@@ -3,7 +3,7 @@
     <id>com.dengzii.plugin.adb</id>
     <name>Android WiFiADB</name>
 
-    <version>2.5</version>
+    <version>2.6</version>
     <vendor email="denua@foxmail.com" url="https://dengzii.com">dengzi</vendor>
     <description><![CDATA[
 <h3>A plugin use for connect android device by WiFi.</h3>
@@ -29,6 +29,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
+      2.6: Update: set fixed default dialog width. <br>
       2.5: Feature: delete device config support. <br>
       2.4: Fix: unable to get device ip address. <br>
       2.3: Update: compatible with Android 10. <br>

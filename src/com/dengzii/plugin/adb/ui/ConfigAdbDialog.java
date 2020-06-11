@@ -23,6 +23,10 @@ public class ConfigAdbDialog extends JDialog {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
 
+    public static void createAndShow() {
+        new ConfigAdbDialog().init();
+    }
+
     private void onOK() {
         File path = new File(textField1.getText());
         if (!path.exists()) {
@@ -37,17 +41,13 @@ public class ConfigAdbDialog extends JDialog {
         dispose();
     }
 
-    public static void createAndShow() {
-        new ConfigAdbDialog().init();
-    }
-
     private void init() {
         label.setText("Adb command is unavailable, please input adb path");
         textField1.setText(Config.INSTANCE.loadAdbPath());
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         int w = 360;
         int h = 180;
-        int x = screen.width / 2 - w / 2;
+        int x = 400 - w / 2;
         int y = screen.height / 2 - h;
         setLocation(x, y);
         setPreferredSize(new Dimension(w, h));

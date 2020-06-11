@@ -48,11 +48,19 @@ public class ConnectDialog extends JDialog implements Runnable {
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
 
+    public static void main(String[] args) {
+        ConnectDialog dialog = new ConnectDialog();
+        dialog.show(() -> {
+
+        });
+        System.exit(0);
+    }
+
     public void show(CallBack callBack) {
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         int w = 260;
         int h = 180;
-        int x = screen.width / 2 - w / 2;
+        int x = 400 - w / 2;
         int y = screen.height / 2 - h;
         setLocation(x, y);
         setPreferredSize(new Dimension(w, h));
@@ -77,14 +85,6 @@ public class ConnectDialog extends JDialog implements Runnable {
     private void onCancel() {
         // add your code here if necessary
         dispose();
-    }
-
-    public static void main(String[] args) {
-        ConnectDialog dialog = new ConnectDialog();
-        dialog.show(() -> {
-
-        });
-        System.exit(0);
     }
 
     interface CallBack {
