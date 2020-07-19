@@ -23,7 +23,8 @@ In your IntelliJ IDE, Nav > File > Settings > Plugins > Search WiFiADB
 ### Change Log
 
 
-- 2.6: Update: fixed default dialog width. <br>
+- 2.7: Update: set main dialog be modal.
+- 2.6: Update: fixed default dialog width.
 - 2.5: Feature: delete device config support.
 - 2.4: Fix: unable to get device ip address.
 - 2.3: Update: compatible with Android 10.
