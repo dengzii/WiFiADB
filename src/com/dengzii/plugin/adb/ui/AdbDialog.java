@@ -28,7 +28,7 @@ public class AdbDialog extends JDialog {
 
     public AdbDialog() {
         setContentPane(contentPane);
-        setModal(false);
+        setModal(true);
 
         contentPane.registerKeyboardAction(
                 e -> {
