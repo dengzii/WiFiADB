@@ -144,8 +144,8 @@ public class AdbDialog extends JDialog {
     }
 
     private void persistStatus() {
-        dialogConfig.setHeight(getHeight());
-        dialogConfig.setWidth(getWidth());
+        dialogConfig.setHeight(contentPane.getHeight());
+        dialogConfig.setWidth(contentPane.getWidth());
         dialogConfig.setX(getX());
         dialogConfig.setY(getY());
 
