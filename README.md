@@ -22,7 +22,7 @@ In your IntelliJ IDE, Nav > File > Settings > Plugins > Search WiFiADB
 
 ### Change Log
 
-
+- 2.8: Fix: dialog height anomaly.
 - 2.7: Update: set main dialog be modal.
 - 2.6: Update: fixed default dialog width.
 - 2.5: Feature: delete device config support.
