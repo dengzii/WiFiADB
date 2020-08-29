@@ -1,5 +1,6 @@
 package com.dengzii.plugin.adb
 
+import com.google.gson.Gson
 import com.intellij.ide.util.PropertiesComponent
 
 /**
@@ -15,27 +16,27 @@ import com.intellij.ide.util.PropertiesComponent
 object Config {
 
     private val TAG = Config::class.java.simpleName
-    private const val KEY_DEVICES = "com.dengzii.plugin.adb.devices"
-    private const val KEY_DIALOG_CONFIG = "com.dengzii.plugin.adb.config.dialog"
-    private const val KEY_ABD = "com.dengzii.plugin.adb.config.adb"
+    private const val KEY_DEVICES_LIST = "com.dengzii.plugin.adb.devices"
+    private const val KEY_MAIN_DIALOG_CONFIG = "com.dengzii.plugin.adb.config.dialog"
+    private const val KEY_ABD_PATH = "com.dengzii.plugin.adb.config.adb"
 
-    fun clear() {
-        PropertiesComponent.getInstance().unsetValue(KEY_DEVICES)
+    fun clearDeviceInfos() {
+        PropertiesComponent.getInstance().unsetValue(KEY_DEVICES_LIST)
     }
 
     fun loadAdbPath(): String {
         val pro = PropertiesComponent.getInstance()
-        return pro.getValue(KEY_ABD) ?: "adb"
+        return pro.getValue(KEY_ABD_PATH) ?: "adb"
     }
 
     fun saveAdbPath(path: String) {
-        PropertiesComponent.getInstance().setValue(KEY_ABD, path)
+        PropertiesComponent.getInstance().setValue(KEY_ABD_PATH, path)
     }
 
     fun loadDevices(): List<Device> {
 
         val pro = PropertiesComponent.getInstance()
-        val deviceList = pro.getValues(KEY_DEVICES)
+        val deviceList = pro.getValues(KEY_DEVICES_LIST)
         val devices = ArrayList<Device>()
         deviceList?.forEach {
             val device = Device.fromSerialString(it)
@@ -43,7 +44,7 @@ object Config {
                 devices.add(device)
             }
         }
-        XLog.d("${TAG}.loadConfigDevice", devices.toString())
+        XLog.d("$TAG.loadConfigDevice", devices.toString())
         return devices
     }
 
@@ -53,23 +54,23 @@ object Config {
         try {
             val pro = PropertiesComponent.getInstance()
             val serialList = devices.map { it.toSerialString() }.toTypedArray()
-            pro.setValues(KEY_DEVICES, serialList)
+            pro.setValues(KEY_DEVICES_LIST, serialList)
         } catch (e: Throwable) {
             XLog.e("$TAG.saveDevice", e)
-            PropertiesComponent.getInstance().unsetValue(KEY_DEVICES)
+            PropertiesComponent.getInstance().unsetValue(KEY_DEVICES_LIST)
         }
     }
 
     fun saveDialogConfig(dialogConfig: DialogConfig) {
-        PropertiesComponent.getInstance().setValue(KEY_DIALOG_CONFIG, dialogConfig.toSerialString())
+        PropertiesComponent.getInstance().setValue(KEY_MAIN_DIALOG_CONFIG, dialogConfig.toSerialString())
     }
 
     fun loadDialogConfig(): DialogConfig {
         return try {
-            DialogConfig.fromSerialString(PropertiesComponent.getInstance().getValue(KEY_DIALOG_CONFIG, ""))
+            DialogConfig.fromSerialString(PropertiesComponent.getInstance().getValue(KEY_MAIN_DIALOG_CONFIG, ""))
         } catch (t: Throwable) {
             XLog.e("$TAG.saveDevice", t)
-            PropertiesComponent.getInstance().unsetValue(KEY_DIALOG_CONFIG)
+            PropertiesComponent.getInstance().unsetValue(KEY_MAIN_DIALOG_CONFIG)
             DialogConfig()
         }
     }
