@@ -20,6 +20,25 @@ Another way is copy this plugin file into IDE's install path /_InstalliJIDE_/plu
 
 In your IntelliJ IDE, Nav > File > Settings > Plugins > Search WiFiADB
 
+### Build
+
+#### Dependencies
+IntelliJ IDEA (Community Edition) 19.1+
+
+#### Import Project
+This project is not a gradle or pom project, but a IntelliJ Platform Plugin project, IDEA cannot import this project normally.
+
+In IDEA Community (necessary) File -> New -> Project from Exsiting Sources -> Create project from exsiting sources, then click next until finish import.
+
+Pressing the Ctrl + Alt + Shift + S to open Project Structure dialog, choose Project tab, change Project SDK to IntelliJ IDEA Community Edition IC-xxxx, then apply change.
+
+Then, edit GenerateModuleFromTemplate.iml in the project root directory, change the type attribute of module node to PLUGIN_MODULE, minimize the IDEA and restore it, the plugin project will be detected.
+
+Finally, Run -> Edit Configuretions -> Alt + Insert -> Plugin -> Apply, the project configuration completed.
+
+### Generate Plugin Jar
+Run -> Prepare Plugin Module xxx For Deployment
+
 ### Change Log
 
 - 2.8: Fix: dialog height anomaly.
