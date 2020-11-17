@@ -8,8 +8,8 @@ import com.dengzii.plugin.adb.utils.CmdUtils
 /**
  * <pre>
  * author : dengzi
- * e-mail : denua@foxmail.com
- * github : https://github.com/MrDenua
+ * e-mail : dengzii@foxmail.com
+ * github : https://github.com/dengzii
  * time   : 2019/10/4
  * desc   :
  * </pre>

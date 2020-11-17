@@ -3,8 +3,8 @@ package com.dengzii.plugin.adb
 /**
  * <pre>
  * author : dengzi
- * e-mail : denua@foxmail.com
- * github : https://github.com/MrDenua
+ * e-mail : dengzii@foxmail.com
+ * github : https://github.com/dengzii
  * time   : 2019/10/9
  * desc   :
  * </pre>

@@ -6,7 +6,7 @@ import com.intellij.openapi.ui.JBPopupMenu
 /**
  * <pre>
  * author : dengzi
- * e-mail : denua@foxmail.com
+ * e-mail : dengzii@foxmail.com
  * github : https://github.com/dengzii
  * time   : 2020/1/16
  * desc   :

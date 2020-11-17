@@ -6,12 +6,13 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.net.Socket
 
 /**
  * <pre>
  * author : dengzi
- * e-mail : denua@foxmail.com
- * github : https://github.com/MrDenua
+ * e-mail : dengzii@foxmail.com
+ * github : https://github.com/dengzii
  * time   : 2019/10/4
  * desc   :
  * </pre>

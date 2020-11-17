@@ -6,8 +6,8 @@ import java.awt.event.MouseListener
 /**
  * <pre>
  * author : dengzi
- * e-mail : denua@foxmail.com
- * github : https://github.com/MrDenua
+ * e-mail : dengzii@foxmail.com
+ * github : https://github.com/dengzii
  * time   : 2019/11/23
  * desc   :
  * </pre>

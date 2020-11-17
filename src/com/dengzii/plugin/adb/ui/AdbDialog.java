@@ -189,7 +189,7 @@ public class AdbDialog extends JDialog {
     private Menu getMain() {
         Menu tools = new Menu("Main");
         tools.addItem("Log", () -> new LogDialog().show(XLog.INSTANCE.getLog()));
-        tools.addItem("Clear All", Config.INSTANCE::clear);
+        tools.addItem("Clear All", Config.INSTANCE::clearDeviceList);
         tools.addItem("Refresh", this::updateTable);
         tools.addItem("Connect Manual", () -> new ConnectDialog().show(this::updateTable));
         tools.addItem("Exit", this::dispose);
