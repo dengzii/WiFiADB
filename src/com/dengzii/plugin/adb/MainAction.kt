@@ -1,6 +1,7 @@
 package com.dengzii.plugin.adb
 
-import com.dengzii.plugin.adb.ui.AdbDialog
+import com.dengzii.plugin.adb.tools.NotificationUtils
+import com.dengzii.plugin.adb.ui.RealAdbDialog
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
@@ -17,9 +18,13 @@ class MainAction : AnAction() {
 
     override fun actionPerformed(anActionEvent: AnActionEvent) {
 
-        val dialog = AdbDialog()
-        dialog.updateTable()
-        dialog.pack()
-        dialog.isVisible = true
+        try {
+            val dialog = RealAdbDialog()
+            dialog.updateDeviceTable()
+            dialog.packAndShow()
+        } catch (e: Throwable) {
+            XLog.e(e)
+            NotificationUtils.showError("Unfortunately, something has gone wrong: ${e.localizedMessage}", "WiFiADB")
+        }
     }
 }

@@ -4,6 +4,7 @@ import com.dengzii.plugin.adb.Device
 import com.dengzii.plugin.adb.XLog
 import com.dengzii.plugin.adb.utils.AdbUtils
 import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Component
 import javax.swing.AbstractCellEditor
@@ -22,7 +23,7 @@ import javax.swing.table.TableCellRenderer
  * desc   :
  * </pre>
  */
-class ButtonEditor(private val dialog: AdbDialog) : AbstractCellEditor(), TableCellEditor, TableCellRenderer {
+class ButtonEditor(private val dialog: RealAdbDialog) : AbstractCellEditor(), TableCellEditor, TableCellRenderer {
 
     private lateinit var value: Device
     private var wait = false
@@ -102,17 +103,17 @@ class ButtonEditor(private val dialog: AdbDialog) : AbstractCellEditor(), TableC
         if (wait) return
 
         wait = true
-        dialog.setStatus("Connecting. please wait...")
+        dialog.setHintLabel("Connecting. please wait...")
 
         Thread {
             val result = device.connect()
             Thread.sleep(500)
             SwingUtilities.invokeLater {
-                dialog.updateTableOnUi()
+                dialog.updateDeviceTableOnUi()
                 if (result.success){
-                    dialog.setStatus("Connected to ${device.ip}:${device.port}")
+                    dialog.setHintLabel("Connected to ${device.ip}:${device.port}")
                 }else{
-                    dialog.setStatus(result.output)
+                    dialog.setHintLabel(result.output)
                 }
             }
             wait = false
@@ -123,14 +124,14 @@ class ButtonEditor(private val dialog: AdbDialog) : AbstractCellEditor(), TableC
         if (wait) return
 
         wait = true
-        dialog.setStatus("Disconnecting. please wait...")
+        dialog.setHintLabel("Disconnecting. please wait...")
 
         Thread {
             device.disconnect()
             Thread.sleep(500)
             SwingUtilities.invokeLater {
-                dialog.updateTableOnUi()
-                dialog.setStatus("disconnect device ${device.ip}:${device.port}")
+                dialog.updateDeviceTableOnUi()
+                dialog.setHintLabel("disconnect device ${device.ip}:${device.port}")
             }
             wait = false
         }.start()

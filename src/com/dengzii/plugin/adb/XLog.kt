@@ -14,24 +14,32 @@ import java.util.*
  */
 object XLog {
 
-    private var TURN_ON_LOG = true
+    private var ENABLE = true
     private var LOG = StringBuilder()
     var LOG_LISTENER: LogListener? = null
 
-    fun getLog(): String {
+    fun getAllLog(): String {
         return LOG.toString()
     }
 
     fun disable() {
-        TURN_ON_LOG = false
+        ENABLE = false
     }
 
     fun enable() {
-        TURN_ON_LOG = true
+        ENABLE = true
+    }
+
+    fun d(log: String) {
+        d(getDefaultTag(), log)
     }
 
     fun d(tag: String, log: String) {
         log(false, "${getTime()} $tag: $log")
+    }
+
+    fun e(e: Throwable) {
+        e(getDefaultTag(), e)
     }
 
     fun e(tag: String, e: Throwable) {
@@ -44,7 +52,7 @@ object XLog {
     }
 
     private fun log(error: Boolean, log: String) {
-        if (!TURN_ON_LOG) {
+        if (!ENABLE) {
             return
         }
         LOG.append(log).append("\n")
@@ -56,8 +64,14 @@ object XLog {
         }
     }
 
+    private fun getDefaultTag(sourceDist: Int = 0): String {
+        val stacks = Thread.currentThread().stackTrace
+        val stack = stacks[stacks.size - 3 - sourceDist]
+        return "${stack.className}.${stack.methodName}:${stack.lineNumber}"
+    }
+
     private fun getTime(): String {
-        val da = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
+        val da = SimpleDateFormat("MM-dd/HH:mm:ss")
         return da.format(Date())
     }
 }

@@ -1,12 +1,11 @@
 package com.dengzii.plugin.adb.utils
 
-import com.dengzii.plugin.adb.Device
 import com.dengzii.plugin.adb.XLog
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.net.Socket
+import java.util.concurrent.Executors
 
 /**
  * <pre>
@@ -20,7 +19,7 @@ import java.net.Socket
 object CmdUtils {
 
     private const val TAG = "CmdUtils"
-
+    private val CMD_EXECUTOR = Executors.newSingleThreadExecutor()
 
 //    fun scanDevice() {
 //
@@ -34,20 +33,33 @@ object CmdUtils {
 //
 //    }
 
+
+    /**
+     * Execute system command async.
+     *
+     * @param cmd The system command.
+     * @param listener The result listener.
+     */
     fun exec(cmd: String, listener: CmdListener? = null) {
 
         XLog.d("$TAG.exec", cmd)
         try {
             val process = Runtime.getRuntime().exec(cmd)
-            Thread(Runnable {
+            CMD_EXECUTOR.submit {
                 val result = resolve(process)
                 listener?.onExecuted(result.success, result.exitCode, result.output)
-            }).start()
+            }
         } catch (e: IOException) {
             e.message?.let { listener?.onExecuted(false, -1, it) }
         }
     }
 
+    /**
+     * Execute system command sync.
+     *
+     * @param cmd The system command.
+     * @return The result.
+     */
     fun execSync(cmd: String): CmdResult {
         XLog.d("$TAG.execSync", cmd)
         return try {

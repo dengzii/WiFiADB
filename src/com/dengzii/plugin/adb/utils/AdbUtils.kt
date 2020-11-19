@@ -201,7 +201,7 @@ object AdbUtils {
                 device.ip = matcher.group(1)
 //            device.broadcastAddress = matcher.group(9)
             }
-        }catch (e:Exception){
+        } catch (e: Exception) {
             XLog.e(TAG, e)
         }
     }
