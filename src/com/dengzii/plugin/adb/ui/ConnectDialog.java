@@ -1,7 +1,7 @@
 package com.dengzii.plugin.adb.ui;
 
 import com.dengzii.plugin.adb.utils.AdbUtils;
-import com.dengzii.plugin.adb.utils.CmdResult;
+import com.dengzii.plugin.adb.utils.CmdUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -73,7 +73,13 @@ public class ConnectDialog extends JDialog implements Runnable {
 
     @Override
     public void run() {
-        CmdResult result = AdbUtils.INSTANCE.connect(textFieldIp.getText(), textFieldPort.getText());
+        Integer port = null;
+        try{
+            port = Integer.valueOf(textFieldPort.getText());
+        }catch (Exception ignored){
+
+        }
+        AdbUtils.INSTANCE.connect(textFieldIp.getText(), port);
         callBack.callBack();
         dispose();
     }

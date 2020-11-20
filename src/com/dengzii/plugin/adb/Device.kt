@@ -1,9 +1,8 @@
 package com.dengzii.plugin.adb
 
 import com.dengzii.plugin.adb.utils.AdbUtils
-import com.dengzii.plugin.adb.utils.CmdListener
-import com.dengzii.plugin.adb.utils.CmdResult
 import com.dengzii.plugin.adb.utils.CmdUtils
+import com.dengzii.plugin.adb.utils.DeviceManager
 
 /**
  * <pre>
@@ -16,17 +15,17 @@ import com.dengzii.plugin.adb.utils.CmdUtils
  */
 class Device() {
 
-    var sn: String = ""
+    var serial: String = ""
     var ip: String = ""
+    var port: String = ""
     var model: String = ""
     var modelName: String = ""
-    var port: String = ""
     var status: Status = Status.UNKNOWN
     var broadcastAddress: String = ""
     var mark: String = ""
+    var transportId: Int = -1
 
     companion object {
-        private const val TAG = "Device"
 
         fun fromSerialString(serialString: String): Device? {
             val args = serialString.split("#|#").toTypedArray()
@@ -36,14 +35,14 @@ class Device() {
             return try {
                 Device(*args)
             } catch (e: Exception) {
-                XLog.e(TAG, e)
+                XLog.e(e)
                 null
             }
         }
     }
 
     private constructor(vararg arg: String) : this() {
-        this.sn = arg[0]
+        this.serial = arg[0]
         this.ip = arg[1]
         this.model = arg[2]
         this.modelName = arg[3]
@@ -54,65 +53,44 @@ class Device() {
     }
 
     fun toSerialString(): String {
-        return arrayOf(sn, ip, model, modelName, port, status.name, broadcastAddress, mark).joinToString("#|#")
+        return arrayOf(serial, ip, model, modelName, port, status.name, broadcastAddress, mark).joinToString("#|#")
     }
 
     fun turnOnTcp(port: String) {
-        AdbUtils.turnTcp(this, port)
+        AdbUtils.tcpIp(port.toInt(), serial)
     }
 
     fun disconnect() {
         if (this.status == Status.CONNECTED && ip.isNotBlank() && port.isNotBlank()) {
-            AdbUtils.disconnect(ip, port)
+            AdbUtils.disconnect(ip, port.toIntOrNull())
         }
     }
 
-    fun connect(): CmdResult {
-        XLog.d("$TAG.connect", "ip=$ip, port=$port, status=$status")
-        if (status != Status.CONNECTED && !AdbUtils.isIpConnected(ip)) {
-
+    fun connect(): CmdUtils.CmdResult {
+        XLog.d("ip=$ip, port=$port, status=$status")
+        if (status != Status.CONNECTED) {
             if (status == Status.ONLINE) { // connected by usb
                 var p = 5555
-                while (!AdbUtils.isPortVailable(p.toString())) {
+                while (!DeviceManager.isPortAvailable(p.toString())) {
                     p += 2
                 }
                 port = p.toString()
-                XLog.d("$TAG.connect", "turn port $port")
-                AdbUtils.turnTcp(this, port)
+                XLog.d("turn port $port")
+                AdbUtils.tcpIp(p, serial)
             }
-            val result = AdbUtils.connect(ip, port)
+            val result = AdbUtils.connect(ip, port.toIntOrNull())
             if (result.success) {
                 status = Status.CONNECTED
             }
             return result
         } else {
-            XLog.d("$TAG.connect", "device already connected.")
+            XLog.d("device already connected.")
         }
-        return CmdResult(-1, "failed.", false)
-    }
-
-    fun installApk(path: String) {
-        AdbUtils.installApk(this, path, null)
-    }
-
-    fun screenRecord(path: String) {
-        AdbUtils.screenRecord(this, path, null)
-    }
-
-    fun screenCap(path: String) {
-        AdbUtils.screenCap(this, path, null)
-    }
-
-    fun restart() {
-        AdbUtils.start(this, null)
-    }
-
-    private fun shell(cmd: String, listener: CmdListener? = null) {
-        AdbUtils.adbShell(this, cmd, listener)
+        return CmdUtils.CmdResult(-1, "failed.", false)
     }
 
     override fun toString(): String {
-        return "Device(sn='$sn', " +
+        return "Device(sn='$serial', " +
                 "ip='$ip', " +
                 "model='$model', " +
                 "modelName='$modelName', " +

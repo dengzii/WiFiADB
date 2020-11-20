@@ -3,6 +3,7 @@ package com.dengzii.plugin.adb.ui
 import com.dengzii.plugin.adb.Device
 import com.dengzii.plugin.adb.XLog
 import com.dengzii.plugin.adb.utils.AdbUtils
+import com.dengzii.plugin.adb.utils.DeviceManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -68,7 +69,7 @@ class ButtonEditor(private val dialog: RealAdbDialog) : AbstractCellEditor(), Ta
                 button.greenText()
             }
             Device.Status.ONLINE, Device.Status.DISCONNECT -> {
-                if (!AdbUtils.isIpConnected(device.ip)) {
+                if (!DeviceManager.isPortAvailable(device.ip)) {
                     button.isEnabled = true
                     button.text = "connect"
                     button.greenText()

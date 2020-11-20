@@ -16,7 +16,6 @@ object XLog {
 
     private var ENABLE = true
     private var LOG = StringBuilder()
-    var LOG_LISTENER: LogListener? = null
 
     fun getAllLog(): String {
         return LOG.toString()
@@ -47,6 +46,10 @@ object XLog {
         e.printStackTrace()
     }
 
+    fun e(msg: String) {
+        log(true, "${getTime()} ${getDefaultTag()} $msg")
+    }
+
     fun e(tag: String, msg: String) {
         log(true, "${getTime()} $tag $msg")
     }
@@ -56,7 +59,6 @@ object XLog {
             return
         }
         LOG.append(log).append("\n")
-        LOG_LISTENER?.log("", log)
         if (error) {
             System.err.println(log)
         } else {
@@ -66,12 +68,13 @@ object XLog {
 
     private fun getDefaultTag(sourceDist: Int = 0): String {
         val stacks = Thread.currentThread().stackTrace
-        val stack = stacks[stacks.size - 3 - sourceDist]
-        return "${stack.className}.${stack.methodName}:${stack.lineNumber}"
+        val stack = stacks[4 - sourceDist]
+        val className = stack.className.split(".").last()
+        return "${className}.${stack.methodName}:${stack.lineNumber}"
     }
 
     private fun getTime(): String {
-        val da = SimpleDateFormat("MM-dd/HH:mm:ss")
+        val da = SimpleDateFormat("MM-dd/HH:mm")
         return da.format(Date())
     }
 }

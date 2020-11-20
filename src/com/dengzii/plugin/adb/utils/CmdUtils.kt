@@ -3,7 +3,6 @@ package com.dengzii.plugin.adb.utils
 import com.dengzii.plugin.adb.XLog
 import java.io.BufferedReader
 import java.io.IOException
-import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.concurrent.Executors
 
@@ -13,36 +12,23 @@ import java.util.concurrent.Executors
  * e-mail : dengzii@foxmail.com
  * github : https://github.com/dengzii
  * time   : 2019/10/4
- * desc   :
+ * desc   : Utils about system command executes.
  * </pre>
  */
 object CmdUtils {
 
-    private const val TAG = "CmdUtils"
-    private val CMD_EXECUTOR = Executors.newSingleThreadExecutor()
-
-//    fun scanDevice() {
-//
-//        try {
-//            val socket = Socket("192.168.0.108", 5555)
-//            println("Connected to " + socket.inetAddress + " on port " +
-//                    socket.port + " from port " + socket.localPort + " of " + socket.localAddress);
-//        }catch (e:Throwable){
-//            println("not open.")
-//        }
-//
-//    }
-
+    private val CMD_EXECUTOR by lazy { Executors.newFixedThreadPool(4) }
 
     /**
-     * Execute system command async.
+     *  Execute the system command in other thread.
      *
      * @param cmd The system command.
      * @param listener The result listener.
      */
+    @Deprecated(message = "Using exec(String, (CmdResult) -> Unit) instead.")
     fun exec(cmd: String, listener: CmdListener? = null) {
 
-        XLog.d("$TAG.exec", cmd)
+        XLog.d(cmd)
         try {
             val process = Runtime.getRuntime().exec(cmd)
             CMD_EXECUTOR.submit {
@@ -50,51 +36,78 @@ object CmdUtils {
                 listener?.onExecuted(result.success, result.exitCode, result.output)
             }
         } catch (e: IOException) {
+            XLog.e(e)
             e.message?.let { listener?.onExecuted(false, -1, it) }
         }
     }
 
     /**
-     * Execute system command sync.
+     * Execute the system command in other thread.
+     *
+     * @param cmd The system command.
+     * @param callback The result listener.
+     */
+    fun exec(cmd: String, callback: ((CmdResult) -> Unit)?) {
+        XLog.d(cmd)
+        try {
+            val process = Runtime.getRuntime().exec(cmd)
+            CMD_EXECUTOR.submit {
+                callback?.invoke(resolve(process))
+            }
+        } catch (e: IOException) {
+            XLog.e(e)
+            callback?.invoke(CmdResult.of(e))
+        }
+    }
+
+    /**
+     * Execute the system command in the current thread.
      *
      * @param cmd The system command.
      * @return The result.
      */
     fun execSync(cmd: String): CmdResult {
-        XLog.d("$TAG.execSync", cmd)
+        XLog.d(cmd)
         return try {
             val process = Runtime.getRuntime().exec(cmd)
-            val error = resolveErr(process.errorStream)
+            val error = resolveErr(process)?.apply {
+                process.destroy()
+            }
             error ?: resolve(process)
         } catch (e: IOException) {
-            XLog.e("$TAG.execSync", e)
-            CmdResult()
+            XLog.e(e)
+            CmdResult.of(e)
         }
     }
 
+    /**
+     * Handle result from the process InputStream.
+     *
+     * @param process The command process need to resolve.
+     * @return The error result, null if no error.
+     */
     private fun resolve(process: Process): CmdResult {
 
         val result = CmdResult()
         val input = process.inputStream
 
-        val reader = InputStreamReader(input)
-        val bf = BufferedReader(reader)
         try {
+            val bf = BufferedReader(InputStreamReader(input))
             val builder = StringBuilder()
             bf.lines().forEach {
-                XLog.d("$TAG.resolve", it)
+                XLog.d(">$it")
                 builder.append("$it\n")
             }
             result.success = true
             result.output = builder.toString()
         } catch (e: IOException) {
-            XLog.e("$TAG.resolve", e)
+            XLog.e(e)
             result.output = e.message ?: e.localizedMessage
         } finally {
             try {
                 input.close()
             } catch (e: IOException) {
-                XLog.e("$TAG.resolveSync", e)
+                XLog.e(e)
                 result.output = e.message ?: e.localizedMessage
             }
         }
@@ -103,26 +116,54 @@ object CmdUtils {
         return result
     }
 
-    private fun resolveErr(inputStream: InputStream): CmdResult? {
-        val reader = InputStreamReader(inputStream)
-        val bf = BufferedReader(reader)
+    /**
+     * Handle error result from the process InputStream.
+     *
+     * @param process The command process need to resolve.
+     * @return The error result, null if no error.
+     */
+    private fun resolveErr(process: Process): CmdResult? {
+
+        val inputStream = process.inputStream
+        var error = false
         try {
+            val reader = InputStreamReader(inputStream)
+            val bf = BufferedReader(reader)
             val builder = StringBuilder()
             bf.lines().forEach {
-                XLog.e("$TAG.resolveErr", it)
+                XLog.e(it)
                 builder.append("$it\n")
             }
+            // if error string is blank means there is no error.
             if (builder.toString().isBlank()) return null
-            return CmdResult(-1, builder.toString(), false)
+            error = true
+            return CmdResult(process.exitValue(), builder.toString())
         } catch (e: IOException) {
-            XLog.e("$TAG.resolveErr", e)
+            XLog.e(e)
         } finally {
             try {
-                inputStream.close()
+                if (error) inputStream.close()
             } catch (e: IOException) {
-                XLog.e("$TAG.resolveErr", e)
+                XLog.e(e)
             }
         }
         return null
+    }
+
+    /**
+     * Expression the result of a command execution.
+     */
+    class CmdResult(
+            var exitCode: Int = 0,
+            var output: String = "",
+            var success: Boolean = exitCode == 0,
+    ) {
+        companion object {
+            fun of(e: Exception) = CmdResult(-1, e.message ?: "No message.", false)
+        }
+    }
+
+    interface CmdListener {
+        fun onExecuted(success: Boolean, code: Int, msg: String)
     }
 }

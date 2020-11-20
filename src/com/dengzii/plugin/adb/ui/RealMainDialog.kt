@@ -9,6 +9,7 @@ import com.dengzii.plugin.adb.tools.ui.PopMenuUtils
 import com.dengzii.plugin.adb.tools.ui.XMenuBar
 import com.dengzii.plugin.adb.tools.ui.onRightMouseButtonClicked
 import com.dengzii.plugin.adb.utils.AdbUtils
+import com.dengzii.plugin.adb.utils.DeviceManager
 import java.awt.Dimension
 /**
  * <pre>
@@ -54,7 +55,7 @@ class RealAdbDialog : AdbDialog() {
     }
 
     fun updateDeviceTableOnUi() {
-        deviceList = AdbUtils.getConnectedDeviceList().toMutableList()
+        deviceList = DeviceManager.getDeviceList().toMutableList()
         deviceTableModel.setData(deviceList)
         deviceTableModel.fireTableStructureChanged()
         updateDeviceTableColumn()

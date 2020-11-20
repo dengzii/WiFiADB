@@ -32,7 +32,7 @@ class DeviceTableModel : DefaultTableModel() {
             val rowList = ArrayList<Any>()
             dialogConfig.col.forEach { c ->
                 rowList.add(when (c) {
-                    DialogConfig.COL.SN -> device.sn
+                    DialogConfig.COL.SN -> device.serial
                     DialogConfig.COL.MODEL_NAME -> device.modelName
                     DialogConfig.COL.NAME -> device.model
                     DialogConfig.COL.IP -> device.ip

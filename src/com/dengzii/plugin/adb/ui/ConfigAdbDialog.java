@@ -37,7 +37,6 @@ public class ConfigAdbDialog extends JDialog {
             path = new File(path.getAbsolutePath() + File.separator + "adb");
         }
         Config.INSTANCE.saveAdbPath(path.getAbsolutePath());
-        AdbUtils.INSTANCE.reloadAdbPath();
         dispose();
     }
 
