@@ -52,7 +52,7 @@ object DeviceManager {
 
         // run list device command, this is a long-running operation. it will frozen ui
         val res = AdbUtils.listDevices()
-        val lines = res.output.split(NEW_LINE)
+        val lines = res.execute().output.split(NEW_LINE)
 
         lines.filter {
             !it.isBlank() && it.trim() !in LINE_NO_DEVICES
@@ -80,7 +80,7 @@ object DeviceManager {
     private fun setIpAddress(device: Device) {
         val res = AdbUtils.adbShell("ip addr show wlan0", device.serial)
         try {
-            val matcher = PATTERN_INET_ADDR.matcher(res.output)
+            val matcher = PATTERN_INET_ADDR.matcher(res.execute().output)
             if (matcher.find()) {
                 device.ip = matcher.group(1)
 //            device.broadcastAddress = matcher.group(9)

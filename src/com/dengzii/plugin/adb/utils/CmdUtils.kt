@@ -20,28 +20,6 @@ object CmdUtils {
     private val CMD_EXECUTOR by lazy { Executors.newFixedThreadPool(4) }
 
     /**
-     *  Execute the system command in other thread.
-     *
-     * @param cmd The system command.
-     * @param listener The result listener.
-     */
-    @Deprecated(message = "Using exec(String, (CmdResult) -> Unit) instead.")
-    fun exec(cmd: String, listener: CmdListener? = null) {
-
-        XLog.d(cmd)
-        try {
-            val process = Runtime.getRuntime().exec(cmd)
-            CMD_EXECUTOR.submit {
-                val result = resolve(process)
-                listener?.onExecuted(result.success, result.exitCode, result.output)
-            }
-        } catch (e: IOException) {
-            XLog.e(e)
-            e.message?.let { listener?.onExecuted(false, -1, it) }
-        }
-    }
-
-    /**
      * Execute the system command in other thread.
      *
      * @param cmd The system command.
@@ -70,7 +48,7 @@ object CmdUtils {
         XLog.d(cmd)
         return try {
             val process = Runtime.getRuntime().exec(cmd)
-            val error = resolveErr(process)?.apply {
+            val error = resolveError(process)?.apply {
                 process.destroy()
             }
             error ?: resolve(process)
@@ -122,7 +100,7 @@ object CmdUtils {
      * @param process The command process need to resolve.
      * @return The error result, null if no error.
      */
-    private fun resolveErr(process: Process): CmdResult? {
+    private fun resolveError(process: Process): CmdResult? {
 
         val inputStream = process.inputStream
         var error = false
@@ -151,7 +129,7 @@ object CmdUtils {
     }
 
     /**
-     * Expression the result of a command execution.
+     * Represents the result of a command execution.
      */
     class CmdResult(
             var exitCode: Int = 0,
@@ -161,9 +139,5 @@ object CmdUtils {
         companion object {
             fun of(e: Exception) = CmdResult(-1, e.message ?: "No message.", false)
         }
-    }
-
-    interface CmdListener {
-        fun onExecuted(success: Boolean, code: Int, msg: String)
     }
 }

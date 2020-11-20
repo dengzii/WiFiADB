@@ -2,6 +2,8 @@
 
 package com.dengzii.plugin.adb.utils
 
+import java.util.concurrent.Executors
+
 /**
  * Utils about ADB.
  *
@@ -21,36 +23,36 @@ object AdbUtils {
         this.adb = adb ?: "adb"
     }
 
-    fun isAdbAvailable() = version().output.contains("Android Debug Bridge")
+    fun isAdbAvailable() = version().execute().output.contains("Android Debug Bridge")
 
-    fun version() = exec("version")
+    fun version() = getCommand("version")
 
     /**
      * List all connected devices.
      * @param detail Whether show detail device info.
      */
-    fun listDevices(detail: Boolean = true) = exec("deviecse ${if (detail) "-l" else ""}", targeted = false)
+    fun listDevices(detail: Boolean = true) = getCommand("deviecse ${if (detail) "-l" else ""}", targeted = false)
 
-    fun startServer() = exec("start-server", targeted = false)
+    fun startServer() = getCommand("start-server", targeted = false)
 
-    fun killServer() = exec("kill-server", targeted = false)
+    fun killServer() = getCommand("kill-server", targeted = false)
 
     /**
      * Retart adbd listening on TCP on port.
      * @param port The port.
      */
-    fun tcpIp(port: Int, serial: String? = null) = exec("tcpip $port", serial)
+    fun tcpIp(port: Int, serial: String? = null) = getCommand("tcpip $port", serial)
 
     /**
      * Retart adbd listening on USB.
      */
-    fun usb(serial: String? = null) = exec("usb", serial)
+    fun usb(serial: String? = null) = getCommand("usb", serial)
 
     /**
      * Push a single package to the device and install it.
      * @param apkPath The local apk path.
      */
-    fun installApk(apkPath: String, serial: String? = null) = exec("install $apkPath", serial)
+    fun installApk(apkPath: String, serial: String? = null) = getCommand("install $apkPath", serial)
 
     /**
      * Copy files/dirs from device to local.
@@ -64,7 +66,7 @@ object AdbUtils {
             compression: String? = null,
             preserveTimestampAndMode: Boolean = true,
             serial: String? = null,
-    ) = exec("pull" +
+    ) = getCommand("pull" +
             (compression?.let { " -z $compression" } ?: " -Z") +
             " -a".takeOrEmpty(preserveTimestampAndMode) +
             " $remotePath" +
@@ -82,7 +84,7 @@ object AdbUtils {
             sync: Boolean = false,
             compression: String? = null,
             serial: String? = null,
-    ) = exec("push" +
+    ) = getCommand("push" +
             " --sync".takeOrEmpty(sync) +
             (compression?.let { " -z $compression" } ?: " -Z") +
             " $localPath" +
@@ -94,11 +96,11 @@ object AdbUtils {
      * @param ip The device ip.
      * @param port The device port, default port is 5555.
      */
-    fun disconnect(ip: String?, port: Int? = 5555): CmdUtils.CmdResult {
+    fun disconnect(ip: String?, port: Int? = 5555): ADBCommand {
         val address = ip?.let {
-            it + port?.let { ":$this" }.orEmpty()
+            it + port?.let { ":$it" }.orEmpty()
         }.orEmpty()
-        return exec("disconnect $address", targeted = false)
+        return getCommand("disconnect $address", targeted = false)
     }
 
     /**
@@ -108,7 +110,7 @@ object AdbUtils {
      * @param port The device port, default is 5555.
      */
     fun connect(ip: String, port: Int? = 5555) =
-            exec("connect $ip${port?.let { ":$this" }.orEmpty()}", targeted = false)
+            getCommand("connect $ip${port?.let { ":$it" }.orEmpty()}", targeted = false)
 
     /**
      * Start recording screen.
@@ -125,10 +127,7 @@ object AdbUtils {
     fun screenCapture(path: String = SCREEN_CAP_PATH, serial: String? = null) =
             adbShell("screencp $path", serial = serial)
 
-    fun restartServer() {
-        exec("kill-server", targeted = false)
-        exec("dveices", targeted = false)
-    }
+    fun restartServer() = getCommand("kill-server", targeted = false) + getCommand("dveices", targeted = false)
 
     /**
      * Run shell command on remote device.
@@ -144,21 +143,46 @@ object AdbUtils {
             forcePtyAllocation: Boolean = false,
             disableExitCode: Boolean = false,
             serial: String? = null,
-    ) = exec("shell -e $escape ${"-n".takeOrEmpty(!useStdin)} $cmd", serial)
+    ) = getCommand("shell -e $escape ${"-n".takeOrEmpty(!useStdin)} $cmd", serial)
 
-    /**
-     * Execute the adb commond.
-     */
-    private fun exec(cmd: String, serial: String? = null, targeted: Boolean = true): CmdUtils.CmdResult {
-        val device = if (targeted) {
-            serial?.let { "-s $this" }.orEmpty()
+    fun getCommand(cmd: String, serial: String? = null, targeted: Boolean = true): ADBCommand {
+        val pSerial = if (targeted) {
+            serial?.let { " -s $it" }.orEmpty()
         } else {
             ""
         }
-        return CmdUtils.execSync("$adb $device $cmd")
+        return ADBCommand("$adb$pSerial $cmd")
     }
 
     private fun String.takeOrEmpty(predicate: Boolean) = if (predicate) this else ""
 
     private fun String.joinIfNonNullElseEmpty(other: String?) = if (other != null) "$this$other" else ""
+
+    /**
+     * Represents a adb command.
+     */
+    class ADBCommand(val cmd: String) {
+
+        companion object {
+            private val EXECUTORS by lazy { Executors.newFixedThreadPool(4) }
+        }
+
+        fun execute(): CmdUtils.CmdResult {
+            return CmdUtils.execSync(cmd)
+        }
+
+        fun execute(callback: (CmdUtils.CmdResult) -> Unit) {
+            EXECUTORS.submit {
+                callback.invoke(execute())
+            }
+        }
+
+        operator fun plus(other: ADBCommand): ADBCommand {
+            return ADBCommand(cmd.plus(" & ").plus(other.cmd))
+        }
+
+        override fun toString(): String {
+            return "ADBCommand(cmd='$cmd')"
+        }
+    }
 }

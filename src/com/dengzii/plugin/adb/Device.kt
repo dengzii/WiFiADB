@@ -78,7 +78,7 @@ class Device() {
                 XLog.d("turn port $port")
                 AdbUtils.tcpIp(p, serial)
             }
-            val result = AdbUtils.connect(ip, port.toIntOrNull())
+            val result = AdbUtils.connect(ip, port.toIntOrNull()).execute()
             if (result.success) {
                 status = Status.CONNECTED
             }
