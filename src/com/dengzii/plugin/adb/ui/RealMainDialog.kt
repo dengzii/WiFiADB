@@ -5,12 +5,15 @@ import com.dengzii.plugin.adb.Device
 import com.dengzii.plugin.adb.DialogConfig
 import com.dengzii.plugin.adb.DialogConfig.COL
 import com.dengzii.plugin.adb.XLog
+import com.dengzii.plugin.adb.tools.NotificationUtils
 import com.dengzii.plugin.adb.tools.ui.PopMenuUtils
 import com.dengzii.plugin.adb.tools.ui.XMenuBar
 import com.dengzii.plugin.adb.tools.ui.onRightMouseButtonClicked
 import com.dengzii.plugin.adb.utils.AdbUtils
 import com.dengzii.plugin.adb.utils.DeviceManager
 import java.awt.Dimension
+import java.awt.Toolkit
+
 /**
  * <pre>
  * author : dengzi
@@ -29,6 +32,7 @@ class RealAdbDialog : AdbDialog() {
     override fun onOpened() {
         super.onOpened()
 
+        initMenuBar()
         restoreDialogState()
         buttonRefresh.addActionListener {
             updateDeviceTable()
@@ -36,7 +40,6 @@ class RealAdbDialog : AdbDialog() {
         if (!AdbUtils.isAdbAvailable()) {
             ConfigAdbDialog.createAndShow()
         }
-        initMenuBar()
         initDeviceTable()
     }
 
@@ -63,13 +66,8 @@ class RealAdbDialog : AdbDialog() {
     }
 
     private fun restoreDialogState() {
-        val screen = toolkit.screenSize
-        val w = if (dialogConfig.width == 0) 550 else dialogConfig.width
-        val h = if (dialogConfig.height == 0) 300 else dialogConfig.height
-        val x = if (dialogConfig.x == 0) screen.width / 2 - w / 2 else dialogConfig.x
-        val y = if (dialogConfig.y == 0) screen.height / 2 - h else dialogConfig.y
-        setLocation(x, y)
-        contentPane.preferredSize = Dimension(w, h)
+        setLocation(dialogConfig.x, dialogConfig.y)
+        contentPane.preferredSize = Dimension(dialogConfig.width, dialogConfig.height)
     }
 
     private fun initDeviceTable() {
@@ -137,7 +135,7 @@ class RealAdbDialog : AdbDialog() {
             }
             Config.saveDevice(deviceList)
         } catch (t: Throwable) {
-            XLog.e("AdbDialog.persistStatus", t)
+            XLog.e(t)
         }
     }
 
