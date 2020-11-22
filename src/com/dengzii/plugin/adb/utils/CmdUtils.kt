@@ -134,7 +134,7 @@ object CmdUtils {
     class CmdResult(
             var exitCode: Int = 0,
             var output: String = "",
-            var success: Boolean = exitCode == 0,
+            var success: Boolean = exitCode == 0
     ) {
         companion object {
             fun of(e: Exception) = CmdResult(-1, e.message ?: "No message.", false)

@@ -112,7 +112,7 @@ open class PersistentConfig(
                         Boolean::class -> getBoolean(keyName, default as Boolean)
                         String::class -> getValue(keyName, default as String)
                         Float::class -> getFloat(keyName, default as Float)
-                        Array::class -> getValues(keyName)
+                        Array<String>::class -> getValues(keyName)
                         // deserialize to object
                         else -> {
                             val v = getValue(keyName)

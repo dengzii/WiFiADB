@@ -1,5 +1,3 @@
-@file:Suppress("SpellCheckingInspection")
-
 package com.dengzii.plugin.adb.utils
 
 import java.util.concurrent.Executors
@@ -65,7 +63,7 @@ object AdbUtils {
             localPath: String,
             compression: String? = null,
             preserveTimestampAndMode: Boolean = true,
-            serial: String? = null,
+            serial: String? = null
     ) = getCommand("pull" +
             (compression?.let { " -z $compression" } ?: " -Z") +
             " -a".takeOrEmpty(preserveTimestampAndMode) +
@@ -83,7 +81,7 @@ object AdbUtils {
             localPath: String,
             sync: Boolean = false,
             compression: String? = null,
-            serial: String? = null,
+            serial: String? = null
     ) = getCommand("push" +
             " --sync".takeOrEmpty(sync) +
             (compression?.let { " -z $compression" } ?: " -Z") +
@@ -142,7 +140,7 @@ object AdbUtils {
             disablePtyAllocation: Boolean = false,
             forcePtyAllocation: Boolean = false,
             disableExitCode: Boolean = false,
-            serial: String? = null,
+            serial: String? = null
     ) = getCommand("shell -e $escape ${"-n".takeOrEmpty(!useStdin)} $cmd", serial)
 
     fun getCommand(cmd: String, serial: String? = null, targeted: Boolean = true): ADBCommand {
@@ -159,7 +157,7 @@ object AdbUtils {
     private fun String.joinIfNonNullElseEmpty(other: String?) = if (other != null) "$this$other" else ""
 
     /**
-     * Represents a adb command.
+     * Represents an adb command.
      */
     class ADBCommand(val cmd: String) {
 
