@@ -1,12 +1,13 @@
 package com.dengzii.plugin.adb.tools.ui
 
-import com.intellij.util.ui.ColumnInfo
 import java.awt.Component
 import java.util.*
+import javax.swing.JLabel
 import javax.swing.JTable
+import javax.swing.JTextField
 
 
-class ColumnInfo<Item>(val name: String) {
+open class ColumnInfo<Item>(val name: String) {
 
     open val maxStringValue: String? get() = null
     open val preferredStringValue: String? get() = null
@@ -14,31 +15,35 @@ class ColumnInfo<Item>(val name: String) {
     open val comparator: Comparator<Item>? get() = null
     open val columnClass: Class<*> get() = String::class.java
 
-//    abstract fun valueOf(var1: Item): Aspect?
-
-    val isSortable: Boolean get() = comparator != null
-
-    fun getEditorValue(component: Component): Item? {
-        return null
+    companion object {
+        fun of(vararg columns: String): List<ColumnInfo<Any>> {
+            return columns.map { ColumnInfo<Any>(it) }
+        }
     }
 
-    fun isCellEditable(item: Item?): Boolean {
-        return true
+    open val isSortable: Boolean get() = comparator != null
+
+    open fun getEditorValue(component: Component, oldValue: Item?): Item? {
+        return oldValue
     }
 
-    fun getRendererComponent(item: Item?): Component? {
-        return null
+    open fun isCellEditable(item: Item?): Boolean {
+        return false
     }
 
-    fun getEditComponent(item: Item?): Component? {
-        return null
+    open fun getRendererComponent(item: Item?): Component? {
+        return JLabel(item.toString())
+    }
+
+    open fun getEditComponent(item: Item?): Component? {
+        return JTextField(item.toString())
     }
 
     open fun getWidth(table: JTable?): Int {
         return -1
     }
 
-    fun hasError(): Boolean {
+    open fun hasError(): Boolean {
         return false
     }
 
@@ -46,7 +51,7 @@ class ColumnInfo<Item>(val name: String) {
         return if (this === other) {
             true
         } else if (other != null && this.javaClass == other.javaClass) {
-            val that = other as ColumnInfo<*, *>
+            val that = other as ColumnInfo<*>
             name == that.name
         } else {
             false

@@ -1,20 +1,19 @@
 package com.dengzii.plugin.adb.tools.ui
 
 import com.intellij.util.ui.AbstractTableCellEditor
+import java.awt.BorderLayout
 import java.awt.Component
-import javax.swing.JLabel
-import javax.swing.JTable
-import javax.swing.JTextField
+import javax.swing.*
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableColumn
 import javax.swing.table.TableColumnModel
 
-class TableAdapter(private val columnInfo: List<ColumnInfo<Any>>) : AbstractTableModel() {
+class TableAdapter(private val columnInfo: MutableList<ColumnInfo<Any>>) : AbstractTableModel() {
 
     private lateinit var jTable: JTable
 
-    private val tableData: MutableList<MutableList<Any?>> = mutableListOf(
+    private val tableData = mutableListOf<MutableList<Any?>>(
             mutableListOf("1", "2", "3"),
             mutableListOf("4", "5", "6"),
             mutableListOf("7", "8", "9")
@@ -43,13 +42,17 @@ class TableAdapter(private val columnInfo: List<ColumnInfo<Any>>) : AbstractTabl
 
         private lateinit var editorComponent: Component
         private lateinit var rendererComponent: Component
+        private var value: Any? = null
+        private var editIndex: Int = -1
 
-        override fun getCellEditorValue(): Any {
-            return (editorComponent as? JTextField)?.text ?: "null"
+        override fun getCellEditorValue(): Any? {
+            return columnInfo[editIndex].getEditorValue(editorComponent, value)
         }
 
         override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean,
                                                  row: Int, column: Int): Component? {
+            this.value = value
+            this.editIndex = column
             var e = columnInfo[column].getEditComponent(value)
             if (e == null) {
                 e = if (value != null && table != null) {
@@ -104,7 +107,7 @@ class TableAdapter(private val columnInfo: List<ColumnInfo<Any>>) : AbstractTabl
     }
 
     override fun getValueAt(rowIndex: Int, columnIndex: Int): Any? {
-        return tableData[rowIndex][columnIndex].toString()
+        return tableData[rowIndex][columnIndex]
     }
 
 }
