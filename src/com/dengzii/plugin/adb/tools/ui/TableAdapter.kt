@@ -1,23 +1,35 @@
 package com.dengzii.plugin.adb.tools.ui
 
+import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.AbstractTableCellEditor
-import java.awt.BorderLayout
 import java.awt.Component
-import javax.swing.*
+import javax.swing.JTable
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableColumn
 import javax.swing.table.TableColumnModel
 
-class TableAdapter(private val columnInfo: MutableList<ColumnInfo<Any>>) : AbstractTableModel() {
+/**
+ * ## The JTable Adapter
+ *
+ * This is an adapter use for auto manager JTable data model.
+ *
+ * @param tableData The table data of each column and each row, you should ensure each row has the same size.
+ * @param columnInfo The column model express how to display and edit.
+ *
+ * @author https://github.com/dengzii
+ */
+open class TableAdapter(private val tableData: MutableList<MutableList<Any?>>,
+                        private val columnInfo: MutableList<ColumnInfo<Any>>) : AbstractTableModel() {
 
     private lateinit var jTable: JTable
 
-    private val tableData = mutableListOf<MutableList<Any?>>(
-            mutableListOf("1", "2", "3"),
-            mutableListOf("4", "5", "6"),
-            mutableListOf("7", "8", "9")
-    )
+    // the map of table column header value and ColumnInfo
+    // using for find ColumnInfo when don't know column index.
+    private var columnInfoMap = mutableMapOf<Any, ColumnInfo<Any>>()
+
+    // the table cell adapter
+    var cellAdapter: CellAdapter = DefaultCellAdapter()
 
     fun setup(table: JTable) {
         jTable = table
@@ -25,61 +37,76 @@ class TableAdapter(private val columnInfo: MutableList<ColumnInfo<Any>>) : Abstr
         table.columnModel = DelegateTableColumnModel(table.columnModel)
     }
 
-    inner class DelegateTableColumnModel(columnModel: TableColumnModel) : TableColumnModelDecorator(columnModel) {
+    fun eachColumn(action: (TableColumn, Int) -> Unit) {
+        for (i in 0 until jTable.columnModel.columnCount) {
+            action(jTable.columnModel.getColumn(i), i)
+        }
+    }
 
-        private val defaultCellAdapter = DefaultCellAdapter()
+    /**
+     * Wrapper of JTable's default column model.
+     *
+     * Using for custom column renderer and editor.
+     */
+    inner class DelegateTableColumnModel(columnModel: TableColumnModel) : TableColumnModelDecorator(columnModel) {
 
         override fun getColumn(columnIndex: Int): TableColumn {
             val column = super.getColumn(columnIndex)
-            column.cellRenderer = defaultCellAdapter
-            column.cellEditor = defaultCellAdapter
+            column.cellRenderer = cellAdapter
+            column.cellEditor = cellAdapter
+            columnInfoMap[column.headerValue]?.columnWidth?.takeIf {
+                it > 0
+            }?.let {
+                column.preferredWidth = it
+            }
             return column
         }
     }
 
-    inner class DefaultCellAdapter
-        : AbstractTableCellEditor(), TableCellRenderer {
+    abstract class CellAdapter : AbstractTableCellEditor(), TableCellRenderer
+
+    /**
+     * Definition how cell render and edit.
+     */
+    inner class DefaultCellAdapter : CellAdapter() {
 
         private lateinit var editorComponent: Component
         private lateinit var rendererComponent: Component
         private var value: Any? = null
-        private var editIndex: Int = -1
+        private var editLocation = Pair(-1, -1)
 
         override fun getCellEditorValue(): Any? {
-            return columnInfo[editIndex].getEditorValue(editorComponent, value)
+            val v = columnInfo[editLocation.second].getEditorValue(
+                    editorComponent, value, editLocation.first, editLocation.second)
+            return v ?: (editorComponent as? JBTextField)?.text
         }
 
         override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean,
                                                  row: Int, column: Int): Component? {
+            // temp the old value before edit cell
             this.value = value
-            this.editIndex = column
-            var e = columnInfo[column].getEditComponent(value)
-            if (e == null) {
-                e = if (value != null && table != null) {
-                    table.getDefaultEditor(value::class.java)
-                            .getTableCellEditorComponent(table, value, isSelected, row, column)
-                } else {
-                    JTextField(value.toString())
-                }
-            }
-            editorComponent = e!!
+            editLocation = Pair(row, column)
+            val header = jTable.columnModel.getColumn(column).headerValue
+            // get the edit component from ColumnInfo
+            editorComponent = columnInfoMap[header]?.getEditComponent(value, row, column) ?: return null
             return editorComponent
         }
 
         override fun getTableCellRendererComponent(table: JTable?, value: Any?, isSelected: Boolean,
                                                    hasFocus: Boolean, row: Int, column: Int): Component? {
-            var r = columnInfo[column].getRendererComponent(value)
-            if (r == null) {
-                r = if (value != null && table != null) {
-                    table.getDefaultRenderer(value::class.java).getTableCellRendererComponent(
-                            table, value, isSelected, hasFocus, row, column)
-                } else {
-                    JLabel(value?.toString().orEmpty())
-                }
-            }
-            rendererComponent = r!!
+            val header = jTable.columnModel.getColumn(column).headerValue
+            rendererComponent = columnInfoMap[header]?.getRendererComponent(value, row, column) ?: return null
             return rendererComponent
         }
+    }
+
+    override fun fireTableStructureChanged() {
+        // when table structure changed, the columns may changed.
+        columnInfoMap.clear()
+        columnInfo.forEach {
+            columnInfoMap[it.colName] = it
+        }
+        super.fireTableStructureChanged()
     }
 
     override fun getColumnClass(columnIndex: Int): Class<*> {
@@ -87,11 +114,11 @@ class TableAdapter(private val columnInfo: MutableList<ColumnInfo<Any>>) : Abstr
     }
 
     override fun getColumnName(column: Int): String {
-        return columnInfo[column].name
+        return columnInfo[column].colName
     }
 
     override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean {
-        return columnInfo[columnIndex].isCellEditable(tableData[rowIndex][columnIndex])
+        return columnInfo[columnIndex].isCellEditable(tableData[rowIndex].getOrNull(columnIndex))
     }
 
     override fun setValueAt(aValue: Any?, rowIndex: Int, columnIndex: Int) {
@@ -107,7 +134,7 @@ class TableAdapter(private val columnInfo: MutableList<ColumnInfo<Any>>) : Abstr
     }
 
     override fun getValueAt(rowIndex: Int, columnIndex: Int): Any? {
-        return tableData[rowIndex][columnIndex]
+        return tableData[rowIndex].getOrNull(columnIndex)
     }
 
 }
