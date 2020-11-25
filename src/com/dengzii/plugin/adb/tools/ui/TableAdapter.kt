@@ -78,7 +78,7 @@ open class TableAdapter(private val tableData: MutableList<MutableList<Any?>>,
         override fun getCellEditorValue(): Any? {
             val v = columnInfo[editLocation.second].getEditorValue(
                     editorComponent, value, editLocation.first, editLocation.second)
-            return v ?: (editorComponent as? JBTextField)?.text
+            return v ?: (editorComponent as? JBTextField)?.text ?: value
         }
 
         override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean,

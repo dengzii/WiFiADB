@@ -2,12 +2,10 @@ package com.dengzii.plugin.adb.ui;
 
 import com.dengzii.plugin.adb.Config;
 import com.dengzii.plugin.adb.DialogConfig;
+import com.dengzii.plugin.adb.tools.ui.XDialog;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +18,7 @@ import java.util.List;
  * desc   :
  * </pre>
  */
-public class ConfigDialog extends JDialog {
+public class ConfigDialog extends XDialog {
     private JPanel contentPane;
     private JButton applyButton;
     private JCheckBox status;
@@ -31,26 +29,13 @@ public class ConfigDialog extends JDialog {
     private JCheckBox modelName;
     private JCheckBox name;
     private JCheckBox ip;
-
-    private List<JCheckBox> checkBoxes = new ArrayList<>();
-    private DialogConfig dialogConfig = DialogConfig.Companion.getINSTANCE();
+    private final List<JCheckBox> checkBoxes = new ArrayList<>();
+    private final DialogConfig dialogConfig = DialogConfig.Companion.getINSTANCE();
 
     private ConfigDialog(CallBack callBack) {
+        super("Custom Column");
         setContentPane(contentPane);
-        setModal(false);
 
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                dispose();
-            }
-        });
-
-        contentPane.registerKeyboardAction(
-                e -> dispose(),
-                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-                JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
-        );
         checkBoxes.add(sn);
         checkBoxes.add(modelName);
         checkBoxes.add(name);
@@ -61,31 +46,27 @@ public class ConfigDialog extends JDialog {
         checkBoxes.add(operate);
 
         checkBoxes.forEach(jCheckBox -> {
-            DialogConfig.COL col = DialogConfig.COL.valueOf(jCheckBox.getText().toUpperCase());
-            jCheckBox.setSelected(dialogConfig.getCol().contains(col));
+            DialogConfig.ColumnEnum columnEnum = DialogConfig.ColumnEnum.valueOf(jCheckBox.getText().toUpperCase());
+            jCheckBox.setSelected(dialogConfig.getCol().contains(columnEnum));
         });
 
         applyButton.addActionListener(e -> {
-            List<DialogConfig.COL> cols = new ArrayList<>();
+            List<DialogConfig.ColumnEnum> columnEnums = new ArrayList<>();
             checkBoxes.forEach(jCheckBox -> {
                 if (jCheckBox.isSelected()) {
-                    DialogConfig.COL col = DialogConfig.COL.valueOf(jCheckBox.getText().toUpperCase());
-                    cols.add(col);
+                    DialogConfig.ColumnEnum columnEnum = DialogConfig.ColumnEnum.valueOf(jCheckBox.getText().toUpperCase());
+                    columnEnums.add(columnEnum);
                 }
             });
-
-            DialogConfig.Companion.getINSTANCE().setCol(cols);
+            DialogConfig.Companion.getINSTANCE().setCol(columnEnums);
             Config.INSTANCE.saveDialogConfig(DialogConfig.Companion.getINSTANCE());
             callBack.onApply();
             dispose();
         });
-        setTitle("Custom Column");
     }
 
-    public static void create(CallBack callBack) {
-        JDialog dialog = new ConfigDialog(callBack);
-        dialog.pack();
-        dialog.setVisible(true);
+    public static void createAndShow(CallBack callBack) {
+        new ConfigDialog(callBack).packAndShow();
     }
 
     @Override

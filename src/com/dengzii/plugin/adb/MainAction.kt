@@ -1,7 +1,7 @@
 package com.dengzii.plugin.adb
 
 import com.dengzii.plugin.adb.tools.NotificationUtils
-import com.dengzii.plugin.adb.ui.RealAdbDialog
+import com.dengzii.plugin.adb.ui.MainDialog
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
@@ -19,8 +19,7 @@ class MainAction : AnAction() {
     override fun actionPerformed(anActionEvent: AnActionEvent) {
 
         try {
-            val dialog = RealAdbDialog()
-            dialog.updateDeviceTable()
+            val dialog = MainDialog()
             dialog.packAndShow()
         } catch (e: Throwable) {
             XLog.e(e)

@@ -15,10 +15,11 @@ import com.intellij.ide.util.PropertiesComponent
 
 object Config {
 
-    private val TAG = Config::class.java.simpleName
     private const val KEY_DEVICES_LIST = "com.dengzii.plugin.adb.devices"
     private const val KEY_MAIN_DIALOG_CONFIG = "com.dengzii.plugin.adb.config.dialog"
     private const val KEY_ABD_PATH = "com.dengzii.plugin.adb.config.adb"
+
+    var jvm_test = false
 
     fun init() {
         AdbUtils.setAdbCommand(loadAdbPath())
@@ -39,6 +40,7 @@ object Config {
     }
 
     fun loadDevices(): List<Device> {
+        if (jvm_test) return emptyList()
 
         val pro = PropertiesComponent.getInstance()
         val deviceList = pro.getValues(KEY_DEVICES_LIST)
@@ -49,19 +51,20 @@ object Config {
                 devices.add(device)
             }
         }
-        XLog.d("$TAG.loadConfigDevice", devices.toString())
+        XLog.d(devices.toString())
         return devices
     }
 
     fun saveDevice(devices: List<Device>) {
+        if (jvm_test) return
 
-        XLog.d("$TAG.saveDevice", devices.toString())
+        XLog.d(devices.toString())
         try {
             val pro = PropertiesComponent.getInstance()
             val serialList = devices.map { it.toSerialString() }.toTypedArray()
             pro.setValues(KEY_DEVICES_LIST, serialList)
         } catch (e: Throwable) {
-            XLog.e("$TAG.saveDevice", e)
+            XLog.e(e)
             PropertiesComponent.getInstance().unsetValue(KEY_DEVICES_LIST)
         }
     }
@@ -74,7 +77,7 @@ object Config {
         return try {
             DialogConfig.fromSerialString(PropertiesComponent.getInstance().getValue(KEY_MAIN_DIALOG_CONFIG, ""))
         } catch (t: Throwable) {
-            XLog.e("$TAG.saveDevice", t)
+            XLog.e(t)
             PropertiesComponent.getInstance().unsetValue(KEY_MAIN_DIALOG_CONFIG)
             DialogConfig()
         }

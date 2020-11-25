@@ -29,7 +29,7 @@ object AdbUtils {
      * List all connected devices.
      * @param detail Whether show detail device info.
      */
-    fun listDevices(detail: Boolean = true) = getCommand("deviecse ${if (detail) "-l" else ""}", targeted = false)
+    fun listDevices(detail: Boolean = true) = getCommand("devices ${if (detail) "-l" else ""}", targeted = false)
 
     fun startServer() = getCommand("start-server", targeted = false)
 
@@ -89,14 +89,14 @@ object AdbUtils {
             " $remotePath", serial)
 
     /**
-     * Disconnect from given TCP/IP device, if not specified diconnect all.
+     * Disconnect from given TCP/IP device, if not specified disconnect all.
      *
-     * @param ip The device ip.
-     * @param port The device port, default port is 5555.
+     * @param ip The device's ip, if specified means that is TCP/IP device.
+     * @param port The device's port, default port is 5555.
      */
-    fun disconnect(ip: String?, port: Int? = 5555): ADBCommand {
+    fun disconnect(ip: String? = null, port: Int? = 5555): ADBCommand {
         val address = ip?.let {
-            it + port?.let { ":$it" }.orEmpty()
+            it + port?.let { p -> ":$p" }.orEmpty()
         }.orEmpty()
         return getCommand("disconnect $address", targeted = false)
     }
@@ -125,7 +125,13 @@ object AdbUtils {
     fun screenCapture(path: String = SCREEN_CAP_PATH, serial: String? = null) =
             adbShell("screencp $path", serial = serial)
 
-    fun restartServer() = getCommand("kill-server", targeted = false) + getCommand("dveices", targeted = false)
+    fun restartServer(): CmdUtils.CmdResult {
+        var r = getCommand("kill-server", targeted = false).execute()
+        if (r.success) {
+            r = getCommand("devices", targeted = false).execute()
+        }
+        return r
+    }
 
     /**
      * Run shell command on remote device.
@@ -173,10 +179,6 @@ object AdbUtils {
             EXECUTORS.submit {
                 callback.invoke(execute())
             }
-        }
-
-        operator fun plus(other: ADBCommand): ADBCommand {
-            return ADBCommand(cmd.plus(" & ").plus(other.cmd))
         }
 
         override fun toString(): String {

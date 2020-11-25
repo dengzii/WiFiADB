@@ -89,7 +89,7 @@ object CmdUtils {
                 result.output = e.message ?: e.localizedMessage
             }
         }
-        result.exitCode = process.exitValue()
+        result.exitCode = process.waitFor()
         process.destroy()
         return result
     }
@@ -102,20 +102,19 @@ object CmdUtils {
      */
     private fun resolveError(process: Process): CmdResult? {
 
-        val inputStream = process.inputStream
+        val inputStream = process.errorStream
         var error = false
         try {
-            val reader = InputStreamReader(inputStream)
-            val bf = BufferedReader(reader)
+            val bf = BufferedReader(InputStreamReader(inputStream))
             val builder = StringBuilder()
             bf.lines().forEach {
-                XLog.e(it)
+                XLog.e(">$it")
                 builder.append("$it\n")
             }
             // if error string is blank means there is no error.
             if (builder.toString().isBlank()) return null
             error = true
-            return CmdResult(process.exitValue(), builder.toString())
+            return CmdResult(process.waitFor(), builder.toString())
         } catch (e: IOException) {
             XLog.e(e)
         } finally {

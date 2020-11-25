@@ -3,24 +3,22 @@ package com.dengzii.plugin.adb.utils
 import com.dengzii.plugin.adb.Config
 import com.dengzii.plugin.adb.Device
 import com.dengzii.plugin.adb.XLog
+import java.util.*
 import java.util.regex.Pattern
 
 /**
- * Utils about ADB.
+ * Device Manger.
  *
  * @author github.com/dengzii
  */
 object DeviceManager {
 
-    private const val SPACE = " "
-    private const val NEW_LINE = "\n"
-
     private const val REGEX_IP = "((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}"
     private val PATTERN_INET_ADDR = Pattern.compile("inet ($REGEX_IP)/24 brd ($REGEX_IP)")
 
-    private val DEVICES_CONNECTED = ArrayList<String>()
-    private val USED_ADB_PORT = mutableListOf<String>()
-    private val DEVICES_TEMP = HashMap<String, Device>()
+    private val USED_ADB_PORT = Vector<String>()
+    private val DEVICES_CONNECTED = Vector<String>()
+    private val DEVICES_ALL = Hashtable<String, Device>()
 
     // Using for matches the cases commandline output are not device info.
     private val LINE_NO_DEVICES = arrayOf(
@@ -29,98 +27,171 @@ object DeviceManager {
             "List of devices attached",
             "adb server is out of date.  killing...")
 
-    fun isPortAvailable(port: String) = !USED_ADB_PORT.contains(port)
+    private fun isPortAvailable(port: String) = !USED_ADB_PORT.contains(port)
 
-    fun getDeviceList(): List<Device> {
+    fun getDeviceList(callback: (success: Boolean?, message: String, devices: List<Device>) -> Unit) {
 
         // clear exist device list
         DEVICES_CONNECTED.clear()
         USED_ADB_PORT.clear()
-        DEVICES_TEMP.clear()
-        DEVICES_TEMP.putAll(loadConfigDevice())
+        DEVICES_ALL.clear()
 
-        DEVICES_TEMP.putAll(getConnectedDevices())
-
-        // persistent connected devices.
-        Config.saveDevice(DEVICES_TEMP.values.toList())
-        return DEVICES_TEMP.values.toMutableList()
-    }
-
-    fun getConnectedDevices(): MutableMap<String, Device> {
-
-        val devices = mutableMapOf<String, Device>()
-
-        // run list device command, this is a long-running operation. it will frozen ui
-        val res = AdbUtils.listDevices()
-        val lines = res.execute().output.split(NEW_LINE)
-
-        lines.filter {
-            !it.isBlank() && it.trim() !in LINE_NO_DEVICES
-        }.mapNotNull {
-            getDeviceFromLine(it)
-        }.forEach { device ->
-            // device does not connect, get device ip
-            if (device.ip.isBlank()) {
-                setIpAddress(device)
-            }
-            // device connected by wifi
-            if (device.port.isNotBlank()) {
-                if (device.ip !in DEVICES_CONNECTED) {
-                    DEVICES_CONNECTED.add(device.ip)
-                }
-                device.mark = DEVICES_TEMP.getOrDefault(device.serial, device).mark
-                DEVICES_TEMP[device.serial] = device
-            }
-            devices[device.serial] = device
+        // loading devices persisted
+        Config.loadDevices().forEach {
+            DEVICES_ALL[it.serial] = it
         }
-
-        return devices
+        getConnectedDevices(callback)
     }
 
-    private fun setIpAddress(device: Device) {
-        val res = AdbUtils.adbShell("ip addr show wlan0", device.serial)
+    fun connectDevice(device: Device, listener: (success: Boolean?, message: String) -> Unit) {
+        XLog.d(device.toString())
+        when (device.status) {
+            Device.Status.CONNECTED -> listener.invoke(false, "Device is already connected.")
+            Device.Status.USB -> {
+                if (device.serial in DEVICES_ALL || device.ip in DEVICES_CONNECTED) {
+                    listener.invoke(false, "Device is already connected. port: ${DEVICES_ALL[device.serial]?.port}")
+                    return
+                }
+                var p = 5555
+                while (!isPortAvailable(p.toString())) {
+                    p += 2
+                }
+                listener.invoke(null, "Connecting to ${device.port}:$p")
+                // returning on adb port
+                AdbUtils.tcpIp(p, device.serial).execute { r1 ->
+                    if (!r1.success) {
+                        listener.invoke(false, r1.output)
+                        return@execute
+                    }
+                    // connecting
+                    AdbUtils.connect(device.ip, p).execute {
+                        val msg = if (it.success) {
+                            device.port = p.toString()
+                            device.status = Device.Status.CONNECTED
+                            "Connected to ${device.port}:$p"
+                        } else {
+                            it.output
+                        }
+                        listener.invoke(it.success, msg)
+                    }
+                }
+            }
+            Device.Status.DISCONNECTED -> {
+                AdbUtils.connect(device.ip, device.port.toIntOrNull()).execute {
+                    val msg = if (it.success) {
+                        device.status = Device.Status.CONNECTED
+                        "Connected to ${device.port}:${device.port}"
+                    } else {
+                        it.output
+                    }
+                    listener.invoke(it.success, msg)
+                }
+            }
+            else -> listener.invoke(false, "Cannot connect device, status=${device.status}.")
+        }
+    }
+
+    fun disconnectDevice(device: Device, listener: (success: Boolean?, message: String) -> Unit) {
+        XLog.d(device.toString())
+        when (device.status) {
+            Device.Status.DISCONNECTED -> listener.invoke(false, "Device is already disconnected.")
+            Device.Status.USB,
+            Device.Status.CONNECTED -> {
+                if (device.port.isBlank()) {
+                    AdbUtils.disconnect(null)
+                } else {
+                    AdbUtils.disconnect(device.ip, device.port.toIntOrNull())
+                }.execute {
+                    val msg = if (it.success) {
+                        device.status = Device.Status.DISCONNECTED
+                        "Disconnected device ${device.modelName}-${device.ip}"
+                    } else {
+                        it.output
+                    }
+                    listener.invoke(it.success, msg)
+                }
+            }
+            else -> listener.invoke(false, "Cannot disconnect device, status=${device.status}.")
+        }
+    }
+
+    private fun getConnectedDevices(callback: (success: Boolean?, message: String, devices: List<Device>) -> Unit) {
+        callback.invoke(null, "Getting device list...", emptyList())
+        AdbUtils.listDevices(true).execute { res ->
+            val devices = mutableMapOf<String, Device>()
+            if (!res.success) {
+                callback.invoke(false, res.output, emptyList())
+                return@execute
+            }
+            val lines = res.output.split("\n")
+            lines.filter {
+                !it.isBlank() && it.trim() !in LINE_NO_DEVICES
+            }.mapNotNull {
+                try {
+                    getDeviceFromLine(it)
+                } catch (e: Exception) {
+                    null
+                }
+            }.forEach { device ->
+                if (device.port.isNotBlank()) {
+                    USED_ADB_PORT.add(device.port)
+                }
+                // device does not connect, get device ip
+                if (device.ip.isBlank()) {
+                    callback.invoke(null, "Getting device info...", emptyList())
+                    device.ip = getIpAddress(device.serial)
+                }
+                // device connected by wifi
+                if (device.port.isNotBlank()) {
+                    if (device.ip !in DEVICES_CONNECTED) {
+                        DEVICES_CONNECTED.add(device.ip)
+                    }
+                }
+                DEVICES_ALL[device.serial] = device
+                device.mark = DEVICES_ALL.getOrDefault(device.serial, device).mark
+                devices[device.serial] = device
+            }
+            // persistent connected devices.
+            Config.saveDevice(DEVICES_ALL.values.toList())
+            callback.invoke(true, "All devices are listed.", DEVICES_ALL.values.toList())
+        }
+    }
+
+    private fun getIpAddress(serial: String): String {
         try {
-            val matcher = PATTERN_INET_ADDR.matcher(res.execute().output)
+            val res = AdbUtils.adbShell("ip addr show wlan0", serial = serial).execute()
+            if (!res.success) {
+                return ""
+            }
+            val matcher = PATTERN_INET_ADDR.matcher(res.output)
             if (matcher.find()) {
-                device.ip = matcher.group(1)
-//            device.broadcastAddress = matcher.group(9)
+                return matcher.group(1)
             }
         } catch (e: Exception) {
             XLog.e(e)
         }
+        return ""
     }
 
     private fun getDeviceFromLine(line: String): Device? {
-        XLog.d("AdbUtils.getDeviceFromLine", line)
-        val part = line.split(SPACE).filter {
+
+        val part = line.split(" ").filter {
             !it.isBlank()
         }
         val device = Device()
         device.serial = part[0]
-        device.status = Device.Status.getStatus(part.elementAtOrElse(1) { "unknown" })
-        device.modelName = part.elementAtOrElse(2) { "-:-" }.split(":").elementAtOrElse(1) { "-" }
-        device.model = part.elementAtOrElse(3) { "-:-" }.split(":").elementAtOrElse(1) { "-" }
+        device.status = Device.Status.getStatus(part.getOrNull(1))
+
+        device.modelName = part[2].split(":")[1]
+        device.model = part[3].split(":")[1]
+        device.transportId = part[4].split(":")[1].toIntOrNull() ?: -1
 
         // connected by wlan
         if (device.serial.contains(":")) {
             val tcp = device.serial.split(":")
             device.ip = tcp[0]
             device.port = tcp[1]
-            USED_ADB_PORT.add(device.port)
             device.status = Device.Status.CONNECTED
-        }
-        return device
-    }
-
-    private fun loadConfigDevice(): MutableMap<String, Device> {
-        val device = mutableMapOf<String, Device>()
-        try {
-            // loading confired device
-            Config.loadDevices().forEach {
-                device[it.serial] = it
-            }
-        } catch (e: Exception) {
-            XLog.e(e)
         }
         return device
     }

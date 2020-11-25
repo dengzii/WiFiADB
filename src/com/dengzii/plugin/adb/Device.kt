@@ -1,9 +1,5 @@
 package com.dengzii.plugin.adb
 
-import com.dengzii.plugin.adb.utils.AdbUtils
-import com.dengzii.plugin.adb.utils.CmdUtils
-import com.dengzii.plugin.adb.utils.DeviceManager
-
 /**
  * <pre>
  * author : dengzi
@@ -56,37 +52,17 @@ class Device() {
         return arrayOf(serial, ip, model, modelName, port, status.name, broadcastAddress, mark).joinToString("#|#")
     }
 
-    fun turnOnTcp(port: String) {
-        AdbUtils.tcpIp(port.toInt(), serial)
-    }
-
-    fun disconnect() {
-        if (this.status == Status.CONNECTED && ip.isNotBlank() && port.isNotBlank()) {
-            AdbUtils.disconnect(ip, port.toIntOrNull())
+    fun getAttr(columnEnum: DialogConfig.ColumnEnum): Any {
+        return when (columnEnum) {
+            DialogConfig.ColumnEnum.SN -> serial
+            DialogConfig.ColumnEnum.MODEL_NAME -> modelName
+            DialogConfig.ColumnEnum.NAME -> model
+            DialogConfig.ColumnEnum.IP -> ip
+            DialogConfig.ColumnEnum.PORT -> port
+            DialogConfig.ColumnEnum.STATUS -> status
+            DialogConfig.ColumnEnum.MARK -> mark
+            DialogConfig.ColumnEnum.OPERATE -> this
         }
-    }
-
-    fun connect(): CmdUtils.CmdResult {
-        XLog.d("ip=$ip, port=$port, status=$status")
-        if (status != Status.CONNECTED) {
-            if (status == Status.ONLINE) { // connected by usb
-                var p = 5555
-                while (!DeviceManager.isPortAvailable(p.toString())) {
-                    p += 2
-                }
-                port = p.toString()
-                XLog.d("turn port $port")
-                AdbUtils.tcpIp(p, serial)
-            }
-            val result = AdbUtils.connect(ip, port.toIntOrNull()).execute()
-            if (result.success) {
-                status = Status.CONNECTED
-            }
-            return result
-        } else {
-            XLog.d("device already connected.")
-        }
-        return CmdUtils.CmdResult(-1, "failed.", false)
     }
 
     override fun toString(): String {
@@ -102,12 +78,11 @@ class Device() {
 
     enum class Status {
 
-        ONLINE, CONNECTED, OFFLINE, DISCONNECT, DISCONNECTED, UNKNOWN, UNAUTHORIZED;
+        USB, CONNECTED, OFFLINE, DISCONNECTED, UNKNOWN, UNAUTHORIZED;
 
         companion object {
-            fun getStatus(status: String) = when (status) {
-                "device" -> ONLINE
-                "disconnect" -> DISCONNECT
+            fun getStatus(status: String?) = when (status) {
+                "device" -> USB
                 "disconnected" -> DISCONNECTED
                 "offline" -> OFFLINE
                 "unauthorized" -> UNAUTHORIZED
