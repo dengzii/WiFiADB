@@ -5,10 +5,10 @@ import com.dengzii.plugin.adb.Device
 import com.dengzii.plugin.adb.DialogConfig
 import com.dengzii.plugin.adb.DialogConfig.ColumnEnum
 import com.dengzii.plugin.adb.XLog
+import com.dengzii.plugin.adb.tools.invokeLater
 import com.dengzii.plugin.adb.tools.ui.*
 import com.dengzii.plugin.adb.utils.AdbUtils
 import com.dengzii.plugin.adb.utils.DeviceManager
-import com.intellij.openapi.application.ApplicationManager
 
 /**
  * WiFiADB Tools main dialog.
@@ -69,10 +69,6 @@ class MainDialog : MainDialogDesign() {
             }
         }
 
-    }
-
-    private fun invokeLater(runnable: Runnable) {
-        ApplicationManager.getApplication().invokeLater(runnable)
     }
 
     private fun initDeviceTable() {
@@ -237,7 +233,7 @@ class MainDialog : MainDialogDesign() {
             }
             menu("Help") {
                 item("About") {
-                    AboutDialog().packAndShow()
+                    AboutDialog().show()
                 }
             }
         }

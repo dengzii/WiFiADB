@@ -1,5 +1,7 @@
 package com.dengzii.plugin.adb.ui;
 
+import com.intellij.util.ui.UIUtil;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -14,7 +16,7 @@ public class LogDialog extends JDialog {
         setModal(true);
         getRootPane().setDefaultButton(buttonCancel);
         buttonCancel.addActionListener(e -> onCancel());
-
+        textArea1.setFont(UIUtil.getLabelFont());
         // call onCancel() when cross is clicked
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -31,23 +33,13 @@ public class LogDialog extends JDialog {
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
 
-    public static void showAbout() {
-        String about =
-                "\n********************\n" +
-                "AdbWiFi Tool\n" +
-                "(c) dengzii 2019 \n" +
-                "GitHub: https://github.com/MrDenua/WiFiADB\n" +
-                "********************\n";
-        new LogDialog().show(about);
-    }
-
     public void show(String log) {
         textArea1.setText(log);
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-        int w = 500;
-        int h = 300;
+        int w = 700;
+        int h = 500;
         int x = screen.width / 2 - w / 2;
-        int y = screen.height / 2 - h;
+        int y = screen.height / 2 - h / 2;
         setLocation(x, y);
         setPreferredSize(new Dimension(w, h));
 

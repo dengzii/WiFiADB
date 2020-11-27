@@ -2,25 +2,46 @@ package com.dengzii.plugin.adb.ui
 
 import com.dengzii.plugin.adb.tools.ui.XDialog
 import com.intellij.ide.BrowserUtil
+import com.intellij.ide.plugins.PluginManager
+import com.intellij.openapi.extensions.PluginId
 import com.intellij.ui.layout.applyToComponent
 import com.intellij.ui.layout.panel
 import com.intellij.util.ui.UIUtil
-
+import java.awt.Dimension
+import java.awt.Font
 
 class AboutDialog : XDialog("About") {
 
+    private val version by lazy {
+        PluginManager.getPlugins().first {
+            it.pluginId == PluginId.getId("com.dengzii.plugin.adb")
+        }.version
+    }
+
     init {
+        persistDialogState = false
         contentPane = panel {
             row {
                 label("")
             }
             row {
-                label("WiFiADB", style = UIUtil.ComponentStyle.LARGE).applyToComponent {
-                    font = UIUtil.getLabelFont().deriveFont(24f)
+                label("WiFiADB", style = UIUtil.ComponentStyle.LARGE, bold = true).applyToComponent {
+                    font = UIUtil.getLabelFont().deriveFont(24f).deriveFont(Font.BOLD)
                 }.withLargeLeftGap()
             }
             row {
-                label("Author: dengzi").withLargeLeftGap()
+                cell {
+                    label("Version: ").withLargeLeftGap()
+                    label(version)
+                }
+            }
+            row {
+                cell {
+                    label("Reference:").withLargeLeftGap()
+                    link("Android Debug Bridge") {
+                        browser("https://developer.android.com/studio/command-line/adb")
+                    }
+                }
             }
             row {
                 cell {
@@ -63,11 +84,11 @@ class AboutDialog : XDialog("About") {
                         .withLargeLeftGap()
             }
         }
-        persistDialogState = false
     }
 
-    override fun pack() {
-        super.pack()
+    override fun onOpened() {
+        super.onOpened()
+        size = Dimension(400, 300)
         location = getLocationCenterOfScreen()
     }
 
@@ -77,5 +98,5 @@ class AboutDialog : XDialog("About") {
 }
 
 fun main() {
-    AboutDialog().packAndShow()
+    AboutDialog().show()
 }

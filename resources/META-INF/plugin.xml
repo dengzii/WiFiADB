@@ -4,7 +4,7 @@
     <name>Android WiFiADB</name>
 
     <version>2.8</version>
-    <vendor email="denua@foxmail.com" url="https://dengzii.com">dengzi</vendor>
+    <vendor email="dengzii@foxmail.com" url="https://github.com/dengzii">dengzi</vendor>
     <description><![CDATA[
 <h3>A plugin use for connect android device by WiFi.</h3>
 

@@ -63,7 +63,7 @@ abstract class XDialog() : JDialog() {
     fun getLocationCenterOfScreen(): Point {
         val screen = toolkit.screenSize
         val x = screen.width / 2 - width / 2
-        val y = screen.height / 2 - height
+        val y = screen.height / 2 - height /2
         return Point(x, y)
     }
 

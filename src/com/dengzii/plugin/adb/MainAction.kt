@@ -18,9 +18,13 @@ class MainAction : AnAction() {
 
     override fun actionPerformed(anActionEvent: AnActionEvent) {
 
+//        val adb = AndroidSdkUtils.getDebugBridge(anActionEvent.project!!)
+//        adb?.devices?.forEach {
+//            println(it.name)
+//        }
         try {
             val dialog = MainDialog()
-            dialog.packAndShow()
+            dialog.show()
         } catch (e: Throwable) {
             XLog.e(e)
             NotificationUtils.showError("Unfortunately, something has gone wrong: ${e.localizedMessage}", "WiFiADB")
