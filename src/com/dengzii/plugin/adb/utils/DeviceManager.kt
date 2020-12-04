@@ -3,8 +3,16 @@ package com.dengzii.plugin.adb.utils
 import com.dengzii.plugin.adb.Config
 import com.dengzii.plugin.adb.Device
 import com.dengzii.plugin.adb.XLog
+import java.net.Inet4Address
+import java.net.InetAddress
+import java.net.NetworkInterface
 import java.util.*
 import java.util.regex.Pattern
+
+
+fun main() {
+    DeviceManager.scan()
+}
 
 /**
  * Device Manger.
@@ -115,6 +123,65 @@ object DeviceManager {
         }
     }
 
+
+    fun NetworkInterface.toPrettyString(): String {
+        var a: InetAddress
+        var addr = ""
+
+        interfaceAddresses.forEach {
+            addr = addr.plus("interfaceAddress: ${it.address.hostName}, ${it.address.hostAddress}, broadcast=${it.broadcast}\n")
+        }
+        while (inetAddresses.hasMoreElements()) {
+            a = inetAddresses.nextElement()
+            addr = addr.plus("inetAddress: ${a.hostName}, ${a.hostAddress}\n")
+            if (a.isLoopbackAddress) {
+                break
+            }
+        }
+        return "${this.index}, ${if (this.isVirtual) "*VIRTUAL* " else ""}${this.displayName}, ${this.name}, sub:${subInterfaces.toList().size}\n" +
+                "loopback=${this.isLoopback},up=${this.isUp},mtu:${this.mtu}\n" +
+                addr
+    }
+
+    fun InetAddress.toPrettyString(): String {
+        return "${if (isLoopbackAddress) "Loopback " else ""}host:${hostName}, hostAddress:${hostAddress}, " +
+                "name:${canonicalHostName}, localAddress:${this.isAnyLocalAddress}"
+    }
+
+    fun InetAddress.getHost(): List<InetAddress> {
+
+        val bitMask = NetworkInterface.getByInetAddress(this)
+                .interfaceAddresses[0].networkPrefixLength
+        val netmask = (0xff_ff_ff_ff shl (32 - bitMask)).toInt()
+        val ip = address[0].toLong() shl 24 or
+                (address[1].toLong() shl 16 and (0xff shl 16)) or
+                (address[2].toLong() shl 8 and (0xff shl 8)) or
+                (address[3].toLong() and 0xff)
+        val startIp = ip and netmask
+        val hosts = mutableListOf<Long>()
+        for (i in 1L until netmask.inv()) {
+            val h = startIp or i
+            if (h == ip){
+                continue
+            }
+            hosts.add(startIp or i)
+        }
+        return hosts.map { InetAddress.getByName(ipToString(it)) }
+    }
+
+    private fun ipToString(address: Long): String {
+        return (address ushr 24 and 0xFF).toString() + "." +
+                (address ushr 16 and 0xFF) + "." +
+                (address ushr 8 and 0xFF) + "." +
+                (address and 0xFF)
+    }
+
+    fun scan() {
+        Inet4Address.getLocalHost().getHost().forEach {
+            println(it.hostAddress)
+        }
+    }
+
     private fun getConnectedDevices(callback: (success: Boolean?, message: String, devices: List<Device>) -> Unit) {
         callback.invoke(null, "Getting device list...", emptyList())
         AdbUtils.listDevices(true).execute { res ->
@@ -125,7 +192,7 @@ object DeviceManager {
             }
             val lines = res.output.split("\n")
             lines.filter {
-                !it.isBlank() && it.trim() !in LINE_NO_DEVICES
+                it.isNotBlank() && it.trim() !in LINE_NO_DEVICES
             }.mapNotNull {
                 try {
                     getDeviceFromLine(it)
@@ -140,6 +207,9 @@ object DeviceManager {
                 if (device.ip.isBlank()) {
                     callback.invoke(null, "Getting device info...", emptyList())
                     device.ip = getIpAddress(device.serial)
+                    if (device.ip.isBlank()) {
+                        callback.invoke(null, "Unable to get device IP", emptyList())
+                    }
                 }
                 // device connected by wifi
                 if (device.port.isNotBlank()) {
@@ -176,7 +246,7 @@ object DeviceManager {
     private fun getDeviceFromLine(line: String): Device? {
 
         val part = line.split(" ").filter {
-            !it.isBlank()
+            it.isNotBlank()
         }
         val device = Device()
         device.serial = part[0]
@@ -195,4 +265,16 @@ object DeviceManager {
         }
         return device
     }
+}
+
+private infix fun Long.and(netmask: Int): Long {
+    return this and netmask.toLong()
+}
+
+private infix fun Byte.and(i: Long): Long {
+    return this.toLong() and i
+}
+
+private infix fun Byte.shl(i: Int): Int {
+    return this.toInt() shl i
 }

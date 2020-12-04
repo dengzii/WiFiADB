@@ -233,7 +233,7 @@ class MainDialog : MainDialogDesign() {
             }
             menu("Help") {
                 item("About") {
-                    AboutDialog().show()
+                    AboutDialog().packAndShow()
                 }
             }
         }

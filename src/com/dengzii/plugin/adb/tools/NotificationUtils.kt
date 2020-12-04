@@ -1,6 +1,8 @@
 package com.dengzii.plugin.adb.tools
 
-import com.intellij.notification.*
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -19,28 +21,30 @@ import com.intellij.util.Alarm
 object NotificationUtils {
 
     var defaultTitle = "Notification"
+    var defaultGroupId = "Untitled_Group"
 
-    var balloonGroup = NotificationGroup("Untitled_Notification", NotificationDisplayType.BALLOON, true)
-    var stickyGroup = NotificationGroup("Untitled_Notification", NotificationDisplayType.STICKY_BALLOON, true)
-
-    fun getInfo(msg: String, title: String = defaultTitle): Notification {
-        return balloonGroup.createNotification(NotificationType.INFORMATION).apply {
-            setTitle(title)
-            setContent(msg)
+    fun getInfo(msg: String, title: String = defaultTitle, groupId: String = defaultGroupId): Notification {
+        return Notification(groupId, null, NotificationType.INFORMATION).also {
+            it.setContent(msg)
+            it.setTitle(title)
+            Notifications.Bus.notify(it, null)
         }
     }
 
-    fun getError(msg: String, title: String = defaultTitle): Notification {
-        return stickyGroup.createNotification(NotificationType.ERROR).apply {
-            setTitle(title)
-            setContent(msg)
+    fun getError(msg: String, title: String = defaultTitle, groupId: String = defaultGroupId): Notification {
+        return Notification(groupId, null, NotificationType.ERROR).also {
+            it.setContent(msg)
+            it.setTitle(title)
+            it.isImportant = true
+            Notifications.Bus.notify(it, null)
         }
     }
 
-    fun getWarning(msg: String, title: String = defaultTitle): Notification {
-        return balloonGroup.createNotification(NotificationType.WARNING).apply {
-            setTitle(title)
-            setContent(msg)
+    fun getWarning(msg: String, title: String = defaultTitle, groupId: String = defaultGroupId): Notification {
+        return Notification(groupId, null, NotificationType.WARNING).also {
+            it.setContent(msg)
+            it.setTitle(title)
+            Notifications.Bus.notify(it, null)
         }
     }
 

@@ -24,7 +24,7 @@ open class ColumnInfo<Item>(val colName: String) {
 
     companion object {
         fun of(vararg columns: String): List<ColumnInfo<Any>> {
-            return columns.map { ColumnInfo(it) }
+            return columns.map { ColumnInfo<Any>(it) }
         }
     }
 
