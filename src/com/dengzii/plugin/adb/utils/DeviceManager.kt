@@ -3,16 +3,14 @@ package com.dengzii.plugin.adb.utils
 import com.dengzii.plugin.adb.Config
 import com.dengzii.plugin.adb.Device
 import com.dengzii.plugin.adb.XLog
-import java.net.Inet4Address
-import java.net.InetAddress
-import java.net.NetworkInterface
+import io.netty.util.internal.SocketUtils
+import org.apache.commons.net.telnet.TelnetClient
+import java.net.*
+import java.nio.channels.SocketChannel
 import java.util.*
+import java.util.concurrent.*
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.regex.Pattern
-
-
-fun main() {
-    DeviceManager.scan()
-}
 
 /**
  * Device Manger.
@@ -123,34 +121,64 @@ object DeviceManager {
         }
     }
 
+    private val scanned = AtomicInteger(0)
+    private val scanDeviceIpList = Vector<InetSocketAddress>()
 
-    fun NetworkInterface.toPrettyString(): String {
-        var a: InetAddress
-        var addr = ""
+    fun scanAvailableDevicesLan(
+            timeout: Int = 1000,
+            ports: List<Int> = listOf(5555, 5557, 5559),
+            threadPoolSize: Int = Runtime.getRuntime().availableProcessors() * 10,
+            callback: (progress: Int, message: String, ip: List<InetSocketAddress>) -> Unit
+    ): ExecutorService {
+        val executor = Executors.newFixedThreadPool(threadPoolSize)
+        val subnetIp = getAllSubnetIp(InetAddress.getLocalHost())
+        val availableIpSize = subnetIp.size
+        scanned.set(0)
+        scanDeviceIpList.clear()
+        val telnetClient = TelnetClient()
+        (executor as ThreadPoolExecutor).setKeepAliveTime(5, TimeUnit.SECONDS)
+        subnetIp.forEach { inetAddress ->
+            executor.submit {
+                if (Thread.interrupted()) {
+                    return@submit
+                }
+                val reachable = inetAddress.isReachable(timeout)
+                if (Thread.interrupted()) {
+                    return@submit
+                }
+                var msg = ""
+                SocketChannel.open()
+                if (reachable) {
+                    val socket = Socket()
+                    for (i in ports) {
+                        try {
+                            msg = "${inetAddress.hostAddress}:${i}"
+                            val socketAddress = InetSocketAddress(inetAddress.hostAddress, i)
+                            socket.connect(socketAddress, 500)
+                            scanDeviceIpList.add(socketAddress)
+                            telnetClient.disconnect()
+                            break
+                        } catch (e: Exception) {
+                        }
+                    }
+                } else {
+                    msg = "${inetAddress.hostAddress} is unreachable."
+                }
 
-        interfaceAddresses.forEach {
-            addr = addr.plus("interfaceAddress: ${it.address.hostName}, ${it.address.hostAddress}, broadcast=${it.broadcast}\n")
-        }
-        while (inetAddresses.hasMoreElements()) {
-            a = inetAddresses.nextElement()
-            addr = addr.plus("inetAddress: ${a.hostName}, ${a.hostAddress}\n")
-            if (a.isLoopbackAddress) {
-                break
+                if (scanned.incrementAndGet() >= availableIpSize) {
+                    msg = "scan finish, ${scanDeviceIpList.size} device may available."
+                    executor.shutdownNow()
+                }
+                val progress = (scanned.get().toFloat() / availableIpSize.toFloat()) * 100
+                callback.invoke(progress.toInt(), msg, scanDeviceIpList)
             }
         }
-        return "${this.index}, ${if (this.isVirtual) "*VIRTUAL* " else ""}${this.displayName}, ${this.name}, sub:${subInterfaces.toList().size}\n" +
-                "loopback=${this.isLoopback},up=${this.isUp},mtu:${this.mtu}\n" +
-                addr
+        return executor
     }
 
-    fun InetAddress.toPrettyString(): String {
-        return "${if (isLoopbackAddress) "Loopback " else ""}host:${hostName}, hostAddress:${hostAddress}, " +
-                "name:${canonicalHostName}, localAddress:${this.isAnyLocalAddress}"
-    }
-
-    fun InetAddress.getHost(): List<InetAddress> {
-
-        val bitMask = NetworkInterface.getByInetAddress(this)
+    private fun getAllSubnetIp(inetAddress: InetAddress): List<InetAddress> {
+        val address = inetAddress.address
+        val bitMask = NetworkInterface.getByInetAddress(inetAddress)
                 .interfaceAddresses[0].networkPrefixLength
         val netmask = (0xff_ff_ff_ff shl (32 - bitMask)).toInt()
         val ip = address[0].toLong() shl 24 or
@@ -161,7 +189,7 @@ object DeviceManager {
         val hosts = mutableListOf<Long>()
         for (i in 1L until netmask.inv()) {
             val h = startIp or i
-            if (h == ip){
+            if (h == ip) {
                 continue
             }
             hosts.add(startIp or i)
@@ -174,12 +202,6 @@ object DeviceManager {
                 (address ushr 16 and 0xFF) + "." +
                 (address ushr 8 and 0xFF) + "." +
                 (address and 0xFF)
-    }
-
-    fun scan() {
-        Inet4Address.getLocalHost().getHost().forEach {
-            println(it.hostAddress)
-        }
     }
 
     private fun getConnectedDevices(callback: (success: Boolean?, message: String, devices: List<Device>) -> Unit) {
@@ -265,16 +287,8 @@ object DeviceManager {
         }
         return device
     }
-}
 
-private infix fun Long.and(netmask: Int): Long {
-    return this and netmask.toLong()
-}
-
-private infix fun Byte.and(i: Long): Long {
-    return this.toLong() and i
-}
-
-private infix fun Byte.shl(i: Int): Int {
-    return this.toInt() shl i
+    private infix fun Long.and(netmask: Int): Long {
+        return this and netmask.toLong()
+    }
 }

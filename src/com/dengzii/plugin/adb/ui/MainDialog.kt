@@ -48,7 +48,7 @@ class MainDialog : MainDialogDesign() {
         deviceList.clear()
         tableData.clear()
         DeviceManager.getDeviceList { success, message, devices ->
-            synchronized(deviceList){
+            synchronized(deviceList) {
                 if (success == true) {
                     deviceList.addAll(devices)
                     deviceList.forEach { device ->
@@ -134,7 +134,7 @@ class MainDialog : MainDialogDesign() {
     private fun clicked(device: Device) {
 
         when (device.status) {
-            Device.Status.CONNECTED, Device.Status.OFFLINE-> {
+            Device.Status.CONNECTED, Device.Status.OFFLINE -> {
                 disconnect(device)
             }
             Device.Status.USB, Device.Status.DISCONNECTED -> {
@@ -195,6 +195,11 @@ class MainDialog : MainDialogDesign() {
                 }
                 item("Connect Manual") {
                     ConnectDialog().show { updateDevice() }
+                }
+                item("Scan Device") {
+                    ScanDeviceDialog.show {
+
+                    }
                 }
                 item("Exit") {
                     dispose()
