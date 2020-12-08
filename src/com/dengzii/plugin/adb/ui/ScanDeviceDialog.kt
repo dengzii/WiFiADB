@@ -1,32 +1,38 @@
 package com.dengzii.plugin.adb.ui
 
+import com.dengzii.plugin.adb.tools.invokeLater
 import com.dengzii.plugin.adb.tools.ui.ColumnInfo
 import com.dengzii.plugin.adb.tools.ui.TableAdapter
 import com.dengzii.plugin.adb.tools.ui.XDialog
 import com.dengzii.plugin.adb.tools.ui.onClick
 import com.dengzii.plugin.adb.utils.DeviceManager
+import com.intellij.ide.ui.fullRow
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.layout.panel
 import java.awt.BorderLayout
 import java.awt.Component
+import java.net.InetSocketAddress
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.*
 
-class ScanDeviceDialog(private var callback: (Map<String, Int>) -> Unit) : XDialog("Scan Device") {
+class ScanDeviceDialog(private var callback: (InetSocketAddress) -> Unit) : XDialog("Scan Device [beta]") {
 
     private val table: JTable = JTable()
     private val tableData = mutableListOf<MutableList<Any?>>()
     private val columnInfo = mutableListOf<ColumnInfo<Any>>()
-    private val model = TableAdapter(tableData, columnInfo)
+    private val tableAdapter = TableAdapter(tableData, columnInfo)
 
     private lateinit var buttonScan: JButton
     private lateinit var labelProgress: JLabel
-    private lateinit var fieldTimeout: JTextField
-    private lateinit var fieldThreadSize: JTextField
+    private lateinit var fieldTimeoutPing: JTextField
+    private lateinit var fieldTimeoutAdb: JTextField
+    private lateinit var fieldThreadNum: JTextField
     private lateinit var fieldPortStart: JTextField
     private lateinit var fieldPortEnd: JTextField
 
     companion object {
-        fun show(callback: (Map<String, Int>) -> Unit) {
+        fun show(callback: (InetSocketAddress) -> Unit) {
             ScanDeviceDialog(callback).packAndShow()
         }
     }
@@ -34,7 +40,7 @@ class ScanDeviceDialog(private var callback: (Map<String, Int>) -> Unit) : XDial
     init {
         persistDialogState = false
         val c = object : ColumnInfo<Any>("Operate", true) {
-            override val columnClass = Int::class.java
+            override val columnClass = InetSocketAddress::class.java
 
             override fun getEditComponent(item: Any?, row: Int, col: Int) = getButton(item)
 
@@ -45,7 +51,10 @@ class ScanDeviceDialog(private var callback: (Map<String, Int>) -> Unit) : XDial
                     layout = BorderLayout(4, 4)
                     add(OperateButtonColumn.Button("Connect").apply {
                         onClick {
-                            println(value)
+                            if (value is InetSocketAddress) {
+                                hideAndDispose()
+                                callback.invoke(value)
+                            }
                         }
                     }, BorderLayout.CENTER)
                 }
@@ -53,18 +62,25 @@ class ScanDeviceDialog(private var callback: (Map<String, Int>) -> Unit) : XDial
         }
         columnInfo.add(ColumnInfo("IP/PORT"))
         columnInfo.add(c)
-        table.rowHeight = 45
+        table.rowHeight = 35
         table.columnSelectionAllowed = false
         table.rowSelectionAllowed = false
-        model.setup(table)
+        tableAdapter.setup(table)
 
         contentPane = panel {
             row { label("") }
             row {
                 label("Timeout").withLargeLeftGap()
                 cell {
-                    intTextField({ 2000 }, {}).apply {
-                        fieldTimeout = component
+                    label("Ping:")
+                    intTextField({ 1000 }, {}).apply {
+                        fieldTimeoutPing = component
+                    }
+                    label("")
+
+                    label("ADB:").withLargeLeftGap()
+                    intTextField({ 1000 }, {}).apply {
+                        fieldTimeoutAdb = component
                     }
                     label("")
                 }
@@ -72,25 +88,27 @@ class ScanDeviceDialog(private var callback: (Map<String, Int>) -> Unit) : XDial
             row {
                 label("Thread Num").withLargeLeftGap()
                 cell {
-                    intTextField({ Runtime.getRuntime().availableProcessors() }, {}).apply {
-                        fieldThreadSize = component
+                    intTextField({ Runtime.getRuntime().availableProcessors() * 2 }, {}).apply {
+                        fieldThreadNum = component
                     }
+                    label("")
+
+                    label("Available Processors: ")
+                    label("${Runtime.getRuntime().availableProcessors()}")
                     label("")
                 }
             }
             row {
                 label("ADB Port").withLargeLeftGap()
                 cell {
-                    intTextField({ 5555 }, { println(it) }, range = 5555..5561).apply {
+                    intTextField({ 5555 }, { println(it) }).apply {
                         fieldPortStart = component
-//                        isEnabled = false
                     }
                     label("-")
-                    intTextField({ 5561 }, { }, range = 5555..5561).apply {
+                    intTextField({ 5559 }, { }).apply {
                         fieldPortEnd = component
-//                        isEnabled = false
                     }
-                    label("4 ports. ")
+                    label("odd, gte 5555, lte 5585 ")
                 }
             }
             row {
@@ -108,8 +126,8 @@ class ScanDeviceDialog(private var callback: (Map<String, Int>) -> Unit) : XDial
                     }
                 }
             }
-            row {
-                panel("", JScrollPane().apply {
+            fullRow {
+                panel("", JBScrollPane().apply {
                     table.fillsViewportHeight = true
                     setViewportView(table)
                 })
@@ -119,23 +137,32 @@ class ScanDeviceDialog(private var callback: (Map<String, Int>) -> Unit) : XDial
     }
 
     private var scanExecutor: ExecutorService? = null
+    private var tableInUpdate = AtomicBoolean(false)
+
     private fun scan() {
         when (buttonScan.text) {
             "Scan" -> {
+                tableData.clear()
+                tableAdapter.fireTableDataChanged()
                 scanExecutor = DeviceManager.scanAvailableDevicesLan(
-                        timeout = fieldTimeout.text.toInt(),
-                        threadPoolSize = fieldThreadSize.text.toInt()
+                        timeout = fieldTimeoutPing.text.toInt(),
+                        adbTimeout = fieldTimeoutAdb.text.toInt(),
+                        threadPoolSize = fieldThreadNum.text.toInt(),
+                        ports = (fieldPortStart.text.toInt()..fieldPortEnd.text.toInt() step 1).toList()
                 ) { progress, message, ip ->
-                    labelProgress.text = "$progress%   $message"
-                    if (ip.isNotEmpty()){
-                        tableData.clear()
-                        ip.forEach {
-                            tableData.add(mutableListOf("${it.address.hostAddress}:${it.port}", it.port))
+                    invokeLater {
+                        labelProgress.text = "$progress%   $message"
+                        if (ip.isNotEmpty() && !tableInUpdate.getAndSet(true)) {
+                            tableData.clear()
+                            ip.forEach {
+                                tableData.add(mutableListOf("${it.address.hostAddress}:${it.port}", it))
+                            }
+                            tableAdapter.fireTableDataChanged()
+                            tableInUpdate.set(false)
                         }
-                        model.fireTableDataChanged()
-                    }
-                    if (progress == 100) {
-                        buttonScan.text = "Scan"
+                        if (progress == 100) {
+                            buttonScan.text = "Scan"
+                        }
                     }
                 }
                 buttonScan.text = "Stop"
@@ -151,7 +178,7 @@ class ScanDeviceDialog(private var callback: (Map<String, Int>) -> Unit) : XDial
     override fun onOpened() {
         super.onOpened()
         location = getLocationCenterOfScreen()
-        model.fireTableStructureChanged()
+        tableAdapter.fireTableStructureChanged()
     }
 
 }

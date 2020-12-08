@@ -196,9 +196,17 @@ class MainDialog : MainDialogDesign() {
                 item("Connect Manual") {
                     ConnectDialog().show { updateDevice() }
                 }
-                item("Scan Device") {
-                    ScanDeviceDialog.show {
-
+                item("Scan Device [beta]") {
+                    ScanDeviceDialog.show { address ->
+                        setHintLabel("Connecting to ${address.address.hostAddress}:${address.port}")
+                        DeviceManager.connectDevice(address.address.hostAddress, address.port) { success, msg ->
+                            invokeLater {
+                                if (success) {
+                                    updateDevice()
+                                }
+                                setHintLabel(msg)
+                            }
+                        }
                     }
                 }
                 item("Exit") {

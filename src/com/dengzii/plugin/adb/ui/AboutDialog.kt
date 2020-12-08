@@ -96,7 +96,3 @@ class AboutDialog : XDialog("About") {
         BrowserUtil.browse(url)
     }
 }
-
-fun main() {
-    AboutDialog().show()
-}

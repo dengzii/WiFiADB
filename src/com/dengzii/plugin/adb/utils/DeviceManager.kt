@@ -3,10 +3,8 @@ package com.dengzii.plugin.adb.utils
 import com.dengzii.plugin.adb.Config
 import com.dengzii.plugin.adb.Device
 import com.dengzii.plugin.adb.XLog
-import io.netty.util.internal.SocketUtils
 import org.apache.commons.net.telnet.TelnetClient
 import java.net.*
-import java.nio.channels.SocketChannel
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -121,13 +119,20 @@ object DeviceManager {
         }
     }
 
+    fun connectDevice(ip: String, port: Int, listener: (success: Boolean, message: String) -> Unit) {
+        AdbUtils.connect(ip, port).execute { res ->
+            listener.invoke(res.success, res.output)
+        }
+    }
+
     private val scanned = AtomicInteger(0)
     private val scanDeviceIpList = Vector<InetSocketAddress>()
 
     fun scanAvailableDevicesLan(
-            timeout: Int = 1000,
+            timeout: Int = 2000,
+            adbTimeout: Int = 1000,
             ports: List<Int> = listOf(5555, 5557, 5559),
-            threadPoolSize: Int = Runtime.getRuntime().availableProcessors() * 10,
+            threadPoolSize: Int = Runtime.getRuntime().availableProcessors() * 2,
             callback: (progress: Int, message: String, ip: List<InetSocketAddress>) -> Unit
     ): ExecutorService {
         val executor = Executors.newFixedThreadPool(threadPoolSize)
@@ -136,41 +141,43 @@ object DeviceManager {
         scanned.set(0)
         scanDeviceIpList.clear()
         val telnetClient = TelnetClient()
-        (executor as ThreadPoolExecutor).setKeepAliveTime(5, TimeUnit.SECONDS)
+        telnetClient.connectTimeout = adbTimeout
+        val logBuilder = StringBuffer()
+        callback.invoke(0, "scanning...", emptyList())
         subnetIp.forEach { inetAddress ->
             executor.submit {
                 if (Thread.interrupted()) {
                     return@submit
                 }
                 val reachable = inetAddress.isReachable(timeout)
-                if (Thread.interrupted()) {
-                    return@submit
-                }
                 var msg = ""
-                SocketChannel.open()
                 if (reachable) {
-                    val socket = Socket()
+                    var s = "${inetAddress.hostAddress} "
                     for (i in ports) {
                         try {
                             msg = "${inetAddress.hostAddress}:${i}"
+                            s = s.plus("$i ")
                             val socketAddress = InetSocketAddress(inetAddress.hostAddress, i)
-                            socket.connect(socketAddress, 500)
+                            telnetClient.connect(inetAddress, i)
                             scanDeviceIpList.add(socketAddress)
-                            telnetClient.disconnect()
                             break
                         } catch (e: Exception) {
                         }
                     }
+                    logBuilder.append("${s}\n")
                 } else {
                     msg = "${inetAddress.hostAddress} is unreachable."
                 }
-
-                if (scanned.incrementAndGet() >= availableIpSize) {
+                val progress = (scanned.incrementAndGet().toFloat() / availableIpSize.toFloat()) * 100
+                if (scanned.get() >= availableIpSize) {
                     msg = "scan finish, ${scanDeviceIpList.size} device may available."
+                    XLog.d(logBuilder.toString())
+                    callback.invoke(progress.toInt(), msg, scanDeviceIpList)
                     executor.shutdownNow()
                 }
-                val progress = (scanned.get().toFloat() / availableIpSize.toFloat()) * 100
-                callback.invoke(progress.toInt(), msg, scanDeviceIpList)
+                if (!Thread.interrupted()) {
+                    callback.invoke(progress.toInt(), msg, scanDeviceIpList)
+                }
             }
         }
         return executor
