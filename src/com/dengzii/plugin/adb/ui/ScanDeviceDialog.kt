@@ -6,7 +6,6 @@ import com.dengzii.plugin.adb.tools.ui.TableAdapter
 import com.dengzii.plugin.adb.tools.ui.XDialog
 import com.dengzii.plugin.adb.tools.ui.onClick
 import com.dengzii.plugin.adb.utils.DeviceManager
-import com.intellij.ide.ui.fullRow
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.layout.panel
 import java.awt.BorderLayout
@@ -126,7 +125,7 @@ class ScanDeviceDialog(private var callback: (InetSocketAddress) -> Unit) : XDia
                     }
                 }
             }
-            fullRow {
+            row {
                 panel("", JBScrollPane().apply {
                     table.fillsViewportHeight = true
                     setViewportView(table)

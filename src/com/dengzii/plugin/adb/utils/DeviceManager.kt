@@ -74,6 +74,7 @@ object DeviceManager {
                             device.status = Device.Status.CONNECTED
                             "Connected to ${device.port}:$p"
                         } else {
+                            it.success = false
                             it.output
                         }
                         listener.invoke(it.success, msg)
@@ -123,6 +124,30 @@ object DeviceManager {
         AdbUtils.connect(ip, port).execute { res ->
             listener.invoke(res.success, res.output)
         }
+    }
+
+    fun touchDevice(ip: String, listener: (available: Boolean, msg: String) -> Unit) {
+        Thread {
+            val inetAddress = InetAddress.getByName(ip)
+            try {
+                inetAddress.isReachable(1000)
+            } catch (e: java.lang.Exception) {
+                listener.invoke(false, "host $ip is unreachable.")
+                return@Thread
+            }
+            val telnetClient = TelnetClient()
+            telnetClient.connectTimeout = 1000
+            for (p in 5555..5561 step 1) {
+                try {
+                    telnetClient.connect(inetAddress, p)
+                    listener.invoke(true, "${ip}:$p is available.")
+                    return@Thread
+                } catch (e: java.lang.Exception) {
+
+                }
+            }
+            listener.invoke(false, "the adb tcp/ip port is closed.")
+        }.start()
     }
 
     private val scanned = AtomicInteger(0)
