@@ -83,6 +83,7 @@ class MainDialog : MainDialogDesign() {
                     "Delete" to {
                         val row = deviceTable.rowAtPoint(it.point)
                         tableData.removeAt(row)
+                        deviceList.removeAt(row)
                         persistState()
                         updateDevice()
                     }
@@ -194,7 +195,16 @@ class MainDialog : MainDialogDesign() {
                     buttonRefresh.doClick()
                 }
                 item("Connect Manual") {
-                    ConnectDialog().show { updateDevice() }
+                    ConnectDialog().show { ip, port ->
+                        DeviceManager.connectDevice(ip, port) { b: Boolean, s: String ->
+                            if (b) {
+                                setHintLabel("Success, updating...")
+                                updateDevice()
+                            }else{
+                                setHintLabel("Failed, $s")
+                            }
+                        }
+                    }
                 }
                 item("Scan Device [beta]") {
                     ScanDeviceDialog.show { address ->

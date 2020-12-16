@@ -122,7 +122,7 @@ object DeviceManager {
 
     fun connectDevice(ip: String, port: Int, listener: (success: Boolean, message: String) -> Unit) {
         AdbUtils.connect(ip, port).execute { res ->
-            listener.invoke(res.success, res.output)
+            listener.invoke(res.output.contains("connected to ${ip}:${port}"), res.output)
         }
     }
 
