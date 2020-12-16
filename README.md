@@ -46,6 +46,7 @@ Finally, `Run -> Edit Configuretions -> Alt + Insert -> Plugin -> Apply`, the pr
 
 # Change Log
 
+**SEE RELEASES FOR MORE.**
 - 2.8: Fix: dialog height anomaly.
 - 2.7: Update: set the main dialog be modal.
 - 2.6: Update: fixed default dialog width.
