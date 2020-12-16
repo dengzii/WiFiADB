@@ -158,10 +158,11 @@ object DeviceManager {
             adbTimeout: Int = 1000,
             ports: List<Int> = listOf(5555, 5557, 5559),
             threadPoolSize: Int = Runtime.getRuntime().availableProcessors() * 2,
+            scanIp: List<InetAddress>? = null,
             callback: (progress: Int, message: String, ip: List<InetSocketAddress>) -> Unit
     ): ExecutorService {
         val executor = Executors.newFixedThreadPool(threadPoolSize)
-        val subnetIp = getAllSubnetIp(InetAddress.getLocalHost())
+        val subnetIp = scanIp ?: getAllSubnetIp(InetAddress.getLocalHost())
         val availableIpSize = subnetIp.size
         scanned.set(0)
         scanDeviceIpList.clear()
@@ -208,7 +209,7 @@ object DeviceManager {
         return executor
     }
 
-    private fun getAllSubnetIp(inetAddress: InetAddress): List<InetAddress> {
+    fun getAllSubnetIp(inetAddress: InetAddress): List<InetAddress> {
         val address = inetAddress.address
         val bitMask = NetworkInterface.getByInetAddress(inetAddress)
                 .interfaceAddresses[0].networkPrefixLength

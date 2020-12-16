@@ -3,32 +3,23 @@ package com.dengzii.plugin.adb.ui
 import com.dengzii.plugin.adb.tools.invokeLater
 import com.dengzii.plugin.adb.tools.ui.ColumnInfo
 import com.dengzii.plugin.adb.tools.ui.TableAdapter
-import com.dengzii.plugin.adb.tools.ui.XDialog
 import com.dengzii.plugin.adb.tools.ui.onClick
 import com.dengzii.plugin.adb.utils.DeviceManager
-import com.intellij.ui.components.JBScrollPane
-import com.intellij.ui.layout.panel
 import java.awt.BorderLayout
 import java.awt.Component
+import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.net.NetworkInterface
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
-import javax.swing.*
+import javax.swing.JPanel
 
-class ScanDeviceDialog(private var callback: (InetSocketAddress) -> Unit) : XDialog("Scan Device [beta]") {
+class ScanDeviceDialog(private var callback: (InetSocketAddress) -> Unit) : ScanDialogDesign() {
 
-    private val table: JTable = JTable()
     private val tableData = mutableListOf<MutableList<Any?>>()
     private val columnInfo = mutableListOf<ColumnInfo<Any>>()
     private val tableAdapter = TableAdapter(tableData, columnInfo)
-
-    private lateinit var buttonScan: JButton
-    private lateinit var labelProgress: JLabel
-    private lateinit var fieldTimeoutPing: JTextField
-    private lateinit var fieldTimeoutAdb: JTextField
-    private lateinit var fieldThreadNum: JTextField
-    private lateinit var fieldPortStart: JTextField
-    private lateinit var fieldPortEnd: JTextField
+    private val subnetIp: List<InetAddress>
 
     companion object {
         fun show(callback: (InetSocketAddress) -> Unit) {
@@ -61,77 +52,28 @@ class ScanDeviceDialog(private var callback: (InetSocketAddress) -> Unit) : XDia
         }
         columnInfo.add(ColumnInfo("IP/PORT"))
         columnInfo.add(c)
-        table.rowHeight = 35
-        table.columnSelectionAllowed = false
-        table.rowSelectionAllowed = false
-        tableAdapter.setup(table)
+        tableResult.rowHeight = 35
+        tableResult.columnSelectionAllowed = false
+        tableResult.rowSelectionAllowed = false
+        tableAdapter.setup(tableResult)
 
-        contentPane = panel {
-            row { label("") }
-            row {
-                label("Timeout").withLargeLeftGap()
-                cell {
-                    label("Ping:")
-                    intTextField({ 1000 }, {}).apply {
-                        fieldTimeoutPing = component
-                    }
-                    label("")
+        val localhost = InetAddress.getLocalHost()
+        val bitMask = NetworkInterface.getByInetAddress(localhost)
+                .interfaceAddresses[0].networkPrefixLength
+        subnetIp = DeviceManager.getAllSubnetIp(localhost)
 
-                    label("ADB:").withLargeLeftGap()
-                    intTextField({ 1000 }, {}).apply {
-                        fieldTimeoutAdb = component
-                    }
-                    label("")
-                }
-            }
-            row {
-                label("Thread Num").withLargeLeftGap()
-                cell {
-                    intTextField({ Runtime.getRuntime().availableProcessors() * 2 }, {}).apply {
-                        fieldThreadNum = component
-                    }
-                    label("")
+        fieldIpStart.text = (subnetIp.first().address[3].toLong() and 0xff).toString()
+        fieldIpEnd.text = (subnetIp.last().address[3].toLong() and 0xff).toString()
+        labelIpStart.text = subnetIp.first().hostAddress.removeSuffix(fieldIpStart.text)
+        labelIpEnd.text = subnetIp.last().hostAddress.removeSuffix(fieldIpEnd.text)
+        labelIp.text = "${localhost.hostAddress}/${bitMask}"
 
-                    label("Available Processors: ")
-                    label("${Runtime.getRuntime().availableProcessors()}")
-                    label("")
-                }
-            }
-            row {
-                label("ADB Port").withLargeLeftGap()
-                cell {
-                    intTextField({ 5555 }, { println(it) }).apply {
-                        fieldPortStart = component
-                    }
-                    label("-")
-                    intTextField({ 5559 }, { }).apply {
-                        fieldPortEnd = component
-                    }
-                    label("odd, gte 5555, lte 5585 ")
-                }
-            }
-            row {
-                cell {
-                    label("").withLargeLeftGap()
-                    button("Scan") {
-                        scan()
-                    }.apply {
-                        buttonScan = component
-                    }
-                }
-                cell {
-                    label("Tap scan to start scan available devices.").apply {
-                        labelProgress = component
-                    }
-                }
-            }
-            row {
-                panel("", JBScrollPane().apply {
-                    table.fillsViewportHeight = true
-                    setViewportView(table)
-                })
-            }
+        fieldThreadNum.text = Runtime.getRuntime().availableProcessors().toString()
+        labelProcessor.text = "Available Processors : ${fieldThreadNum.text}"
+        labelProgress.text = "Tap scan to start scan available device."
 
+        buttonScan.onClick {
+            scan()
         }
     }
 
@@ -139,15 +81,23 @@ class ScanDeviceDialog(private var callback: (InetSocketAddress) -> Unit) : XDia
     private var tableInUpdate = AtomicBoolean(false)
 
     private fun scan() {
+
+        val ips = mutableListOf<InetAddress>()
+        val progression = fieldIpStart.text.trim().toInt()..fieldIpEnd.text.trim().toInt()
+        progression.forEach {
+            ips.add(InetAddress.getByName("${labelIpStart.text}$it"))
+        }
+
         when (buttonScan.text) {
             "Scan" -> {
                 tableData.clear()
                 tableAdapter.fireTableDataChanged()
                 scanExecutor = DeviceManager.scanAvailableDevicesLan(
                         timeout = fieldTimeoutPing.text.toInt(),
-                        adbTimeout = fieldTimeoutAdb.text.toInt(),
+                        adbTimeout = filedTimeoutAdb.text.toInt(),
                         threadPoolSize = fieldThreadNum.text.toInt(),
-                        ports = (fieldPortStart.text.toInt()..fieldPortEnd.text.toInt() step 1).toList()
+                        ports = (fieldPortStart.text.toInt()..fieldPortEnd.text.toInt() step 1).toList(),
+                        scanIp = ips
                 ) { progress, message, ip ->
                     invokeLater {
                         labelProgress.text = "$progress%   $message"
@@ -174,10 +124,9 @@ class ScanDeviceDialog(private var callback: (InetSocketAddress) -> Unit) : XDia
         }
     }
 
-    override fun onOpened() {
-        super.onOpened()
+    override fun pack() {
+        super.pack()
         location = getLocationCenterOfScreen()
         tableAdapter.fireTableStructureChanged()
     }
-
 }
