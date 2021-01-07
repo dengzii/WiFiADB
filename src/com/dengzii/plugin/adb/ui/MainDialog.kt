@@ -80,13 +80,13 @@ class MainDialog : MainDialogDesign() {
 
         deviceTable.onRightMouseButtonClicked {
             PopMenuUtils.show(it, hashMapOf(
-                    "Delete" to {
-                        val row = deviceTable.rowAtPoint(it.point)
-                        tableData.removeAt(row)
-                        deviceList.removeAt(row)
-                        persistState()
-                        updateDevice()
-                    }
+                "Delete" to {
+                    val row = deviceTable.rowAtPoint(it.point)
+                    tableData.removeAt(row)
+                    deviceList.removeAt(row)
+                    persistState()
+                    updateDevice()
+                }
             ))
         }
         initDeviceTableStructure()
@@ -96,7 +96,9 @@ class MainDialog : MainDialogDesign() {
         tableColumnInfo.clear()
         tableColumnInfo.addAll(dialogConfig.col.map {
             val c: ColumnInfo<Any> = if (it == ColumnEnum.OPERATE) {
-                OperateButtonColumn(it.name, this::clicked)
+                OperateButtonColumn(it.name){
+                    clicked(it)
+                }
             } else {
                 ColumnInfo(it.name, it == ColumnEnum.MARK)
             }
@@ -126,7 +128,11 @@ class MainDialog : MainDialogDesign() {
                     deviceList[row].mark = deviceTable.getValueAt(row, markColIndex).toString()
                 }
             }
-            Config.saveDevice(deviceList)
+            Config.saveDevice(
+                deviceList.filter {
+                    it.port.isNotBlank() || it.status != Device.Status.USB
+                }
+            )
         } catch (t: Throwable) {
             XLog.e(t)
         }
@@ -200,7 +206,7 @@ class MainDialog : MainDialogDesign() {
                             if (b) {
                                 setHintLabel("Success, updating...")
                                 updateDevice()
-                            }else{
+                            } else {
                                 setHintLabel("Failed, $s")
                             }
                         }
@@ -243,7 +249,8 @@ class MainDialog : MainDialogDesign() {
                 }
                 item("Custom Column") {
                     ConfigDialog.createAndShow {
-                        tableAdapter.fireTableStructureChanged()
+                        dialogConfig = Config.loadDialogConfig()
+                        initDeviceTableStructure()
                         updateDevice()
                     }
                 }
@@ -256,7 +263,7 @@ class MainDialog : MainDialogDesign() {
             }
             menu("Help") {
                 item("About") {
-                    AboutDialog().packAndShow()
+                    AboutDialog.show_()
                 }
             }
         }

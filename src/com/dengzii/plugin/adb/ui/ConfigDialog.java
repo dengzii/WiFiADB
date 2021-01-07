@@ -66,7 +66,9 @@ public class ConfigDialog extends XDialog {
     }
 
     public static void createAndShow(CallBack callBack) {
-        new ConfigDialog(callBack).show();
+        Dialog d = new ConfigDialog(callBack);
+        d.pack();
+        d.setVisible(true);
     }
 
     @Override

@@ -277,7 +277,7 @@ object DeviceManager {
                 devices[device.serial] = device
             }
             // persistent connected devices.
-            Config.saveDevice(DEVICES_ALL.values.toList())
+            Config.saveDevice(DEVICES_ALL.values.filter { it.port.isNotBlank() })
             callback.invoke(true, "All devices are listed.", DEVICES_ALL.values.toList())
         }
     }
