@@ -7,6 +7,7 @@ import com.intellij.openapi.extensions.PluginId;
 import com.intellij.ui.components.labels.LinkLabel;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Arrays;
 
 public class AboutDialog extends XDialog {
@@ -16,6 +17,12 @@ public class AboutDialog extends XDialog {
     private LinkLabel<String> labelIssue;
     private JLabel labelVersion;
     private JPanel content;
+
+    public static void show_(){
+        Dialog dialog = new AboutDialog();
+        dialog.pack();
+        dialog.setVisible(true);
+    }
 
     AboutDialog() {
         super("About");
@@ -43,8 +50,18 @@ public class AboutDialog extends XDialog {
 
         labelIssue.setListener((linkLabel, o) -> {
             BrowserUtil.browse(o);
-        }, "https://github.com/dengzii/WiFiADB/issues/new");
+        }, "https://github.com/dengzii/WiFiADB/issues");
+    }
 
-
+    @Override
+    public void pack() {
+        super.pack();
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        int w = getWidth();
+        int h = getHeight();
+        int x = 400 - w / 2;
+        int y = screen.height / 2 - h;
+        setLocation(x, y);
+        setPreferredSize(new Dimension(w, h));
     }
 }
