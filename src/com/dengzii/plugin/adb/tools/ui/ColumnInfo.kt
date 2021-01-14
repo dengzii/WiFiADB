@@ -26,6 +26,10 @@ open class ColumnInfo<Item>(val colName: String) {
         fun of(vararg columns: String): List<ColumnInfo<Any>> {
             return columns.map { ColumnInfo<Any>(it) }
         }
+
+        fun new(colName: String, editable: Boolean): ColumnInfo<Any> {
+            return ColumnInfo(colName, editable)
+        }
     }
 
     /**

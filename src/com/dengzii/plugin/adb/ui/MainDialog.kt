@@ -94,17 +94,18 @@ class MainDialog : MainDialogDesign() {
 
     private fun initDeviceTableStructure() {
         tableColumnInfo.clear()
-        tableColumnInfo.addAll(dialogConfig.col.map {
-            val c: ColumnInfo<Any> = if (it == ColumnEnum.OPERATE) {
-                OperateButtonColumn(it.name){
-                    clicked(it)
+        val cols = dialogConfig.col.map {
+            if (it == ColumnEnum.OPERATE) {
+                OperateButtonColumn.newInstance(it.name) { device ->
+                    clicked(device)
                 }
             } else {
-                ColumnInfo(it.name, it == ColumnEnum.MARK)
+                ColumnInfo.new(it.name, it == ColumnEnum.MARK)
+            }.apply {
+                this.columnWidth = dialogConfig.colWidth[it.name]
             }
-            c.columnWidth = dialogConfig.colWidth[it.name]
-            c
-        })
+        }
+        tableColumnInfo.addAll(cols)
         tableAdapter.fireTableStructureChanged()
     }
 
