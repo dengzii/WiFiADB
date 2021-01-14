@@ -5,6 +5,7 @@ import com.dengzii.plugin.adb.XLog
 import com.dengzii.plugin.adb.tools.ui.ColumnInfo
 import com.dengzii.plugin.adb.tools.ui.onClick
 import com.intellij.ui.components.JBLabel
+import org.apache.commons.lang3.text.translate.NumericEntityUnescaper
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -20,7 +21,14 @@ import javax.swing.JPanel
  * desc   :
  * </pre>
  */
-class OperateButtonColumn(colName: String, private val clickListener: (device: Device) -> Unit) : ColumnInfo<Any>(colName) {
+class OperateButtonColumn(colName: String, private val clickListener: (device: Device) -> Unit) :
+    ColumnInfo<Any>(colName) {
+
+    companion object {
+        fun newInstance(colName: String, clickListener: (device: Device) -> Unit): OperateButtonColumn {
+            return OperateButtonColumn(colName, clickListener)
+        }
+    }
 
     override val columnClass = Device::class.java
 
@@ -62,7 +70,7 @@ class OperateButtonColumn(colName: String, private val clickListener: (device: D
                 button.text = "connect"
                 button.greenText()
             }
-            Device.Status.OFFLINE->{
+            Device.Status.OFFLINE -> {
                 button.text = "offline"
                 button.isEnabled = false
             }
