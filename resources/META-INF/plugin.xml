@@ -3,7 +3,7 @@
     <id>com.dengzii.plugin.adb</id>
     <name>Android WiFiADB</name>
 
-    <version>3.2</version>
+    <version>3.3</version>
     <vendor email="dengzii@foxmail.com" url="https://github.com/dengzii">dengzi</vendor>
     <description><![CDATA[
 <h3>A plugin use for connect android device by WiFi.</h3>
@@ -30,8 +30,9 @@
     ]]></description>
 
     <change-notes><![CDATA[
-      <b>3.2 (2021-01-07)</b><br>
+      <b>3.3 (2021-01-15)</b><br>
       1. fix some bugs.<br>
+      2. fix compatible problem.<br>
     ]]>
     </change-notes>
 
