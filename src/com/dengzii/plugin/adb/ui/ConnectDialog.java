@@ -54,17 +54,17 @@ public class ConnectDialog extends JDialog implements Runnable {
     }
 
     public void show(CallBack callBack) {
-        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-        int w = 260;
-        int h = 180;
-        int x = 400 - w / 2;
-        int y = screen.height / 2 - h;
-        setLocation(x, y);
-        setPreferredSize(new Dimension(w, h));
+
 
         this.callBack = callBack;
         setTitle("Connect to device");
         pack();
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        int w = getWidth();
+        int h = getHeight();
+        int x = screen.width / 2 - w / 2;
+        int y = screen.height / 2 - h;
+        setBounds(x, y, w, h);
         setVisible(true);
     }
 

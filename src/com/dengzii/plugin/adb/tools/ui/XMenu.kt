@@ -39,6 +39,12 @@ class XMenu(name: String?, private val block: XMenu.() -> Unit) : JMenu(name) {
         })
     }
 
+    fun onClick(onClick: () -> Unit){
+        onMouseButtonClicked(MouseEvent.BUTTON1){
+            onClick()
+        }
+    }
+
     interface OnItemClick {
         fun onItemClick()
     }
