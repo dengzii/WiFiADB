@@ -3,10 +3,10 @@
     <id>com.dengzii.plugin.adb</id>
     <name>Android WiFiADB</name>
 
-    <version>3.3</version>
+    <version>3.4</version>
     <vendor email="dengzii@foxmail.com" url="https://github.com/dengzii">dengzi</vendor>
     <description><![CDATA[
-<h3>A plugin use for connect android device by WiFi.</h3>
+<h3>An AndroidStudio plugin use for connecting Android device over WiFi.</h3>
 
 <b>Usage: </b>
 <p>- Please ensure your computer was configured adb in PATH.
@@ -30,9 +30,10 @@
     ]]></description>
 
     <change-notes><![CDATA[
-      <b>3.3 (2021-01-15)</b><br>
-      1. fix some bugs.<br>
-      2. fix compatible problem.<br>
+      <b>3.4 (2021-03-08)</b><br>
+      1. fix: the about dialog cannot be displayed.<br>
+      2. fix: `connect manual` dialog size problem.<br>
+      3. feat: add `connect manual` to toolbar.<br>
     ]]>
     </change-notes>
 

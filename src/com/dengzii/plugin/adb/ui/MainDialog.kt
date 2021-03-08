@@ -262,6 +262,20 @@ class MainDialog : MainDialogDesign() {
                     updateDevice()
                 }
             }
+            menu("Connect Manual"){
+                onClick {
+                    ConnectDialog().show { ip, port ->
+                        DeviceManager.connectDevice(ip, port) { b: Boolean, s: String ->
+                            if (b) {
+                                setHintLabel("Success, updating...")
+                                updateDevice()
+                            } else {
+                                setHintLabel("Failed, $s")
+                            }
+                        }
+                    }
+                }
+            }
             menu("Help") {
                 item("About") {
                     AboutDialog.show_()

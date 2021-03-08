@@ -3,7 +3,7 @@
   <grid id="27dc6" binding="content" layout-manager="GridLayoutManager" row-count="8" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="500" height="400"/>
+      <xy x="20" y="20" width="569" height="400"/>
     </constraints>
     <properties>
       <foreground color="-2763307"/>
@@ -51,10 +51,10 @@
               <text value="Reference"/>
             </properties>
           </component>
-          <component id="703ca" class="com.intellij.ui.components.labels.LinkLabel" binding="labelAdb">
+          <component id="5e2f8" class="javax.swing.JLabel" binding="reference">
             <constraints/>
             <properties>
-              <icon value=""/>
+              <foreground color="-10576170"/>
               <text value="Android Debug Bridge"/>
             </properties>
           </component>
@@ -73,11 +73,11 @@
               <text value="Rating"/>
             </properties>
           </component>
-          <component id="49713" class="com.intellij.ui.components.labels.LinkLabel" binding="labelRating">
+          <component id="e4d5b" class="javax.swing.JLabel" binding="rating">
             <constraints/>
             <properties>
-              <icon value=""/>
-              <text value="JetBrains Plugin Repository"/>
+              <foreground color="-10576170"/>
+              <text value="JetBrains Plugin Marketplace"/>
             </properties>
           </component>
         </children>
@@ -95,10 +95,10 @@
               <text value="Source Code"/>
             </properties>
           </component>
-          <component id="114c3" class="com.intellij.ui.components.labels.LinkLabel" binding="labelCode">
+          <component id="81693" class="javax.swing.JLabel" binding="sourceCode">
             <constraints/>
             <properties>
-              <icon value=""/>
+              <foreground color="-10576170"/>
               <text value="https://github.com/dengzii/WiFiADB"/>
             </properties>
           </component>
@@ -117,10 +117,10 @@
               <text value="If you have any questions or suggestions, please"/>
             </properties>
           </component>
-          <component id="4ffaf" class="com.intellij.ui.components.labels.LinkLabel" binding="labelIssue">
+          <component id="14dd" class="javax.swing.JLabel" binding="issue">
             <constraints/>
             <properties>
-              <icon value=""/>
+              <foreground color="-10576170"/>
               <text value="Create Issue"/>
             </properties>
           </component>
