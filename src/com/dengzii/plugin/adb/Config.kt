@@ -21,10 +21,6 @@ object Config {
 
     var jvm_test = false
 
-    fun init() {
-        AdbUtils.setAdbCommand(loadAdbPath())
-    }
-
     fun clearDeviceList() {
         PropertiesComponent.getInstance().unsetValue(KEY_DEVICES_LIST)
     }
