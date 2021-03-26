@@ -20,6 +20,7 @@ public class ScanDialogDesign extends XDialog {
     public JLabel labelIpStart;
     public JLabel labelIpEnd;
     public JLabel labelIp;
+    public JComboBox<String> comboBoxInterface;
 
     ScanDialogDesign(){
         super("Scan Device [beta]");

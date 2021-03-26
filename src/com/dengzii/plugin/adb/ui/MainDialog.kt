@@ -31,8 +31,8 @@ class MainDialog : MainDialogDesign() {
         buttonRefresh.onClick {
             updateDevice()
         }
-        if (!AdbUtils.isAdbAvailable()) {
-            ConfigAdbDialog.createAndShow()
+        if (!AdbUtils.lookingForAdb()) {
+            ConfigAdbDialog.createAndShow(true)
         }
         initDeviceTable()
         updateDevice()
@@ -246,7 +246,7 @@ class MainDialog : MainDialogDesign() {
             }
             menu("Settings") {
                 item("Configure Adb Path") {
-                    ConfigAdbDialog.createAndShow()
+                    ConfigAdbDialog.createAndShow(false)
                 }
                 item("Custom Column") {
                     ConfigDialog.createAndShow {

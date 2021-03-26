@@ -19,7 +19,7 @@ class ScanDeviceDialog(private var callback: (InetSocketAddress) -> Unit) : Scan
     private val tableData = mutableListOf<MutableList<Any?>>()
     private val columnInfo = mutableListOf<ColumnInfo<Any>>()
     private val tableAdapter = TableAdapter(tableData, columnInfo)
-    private val subnetIp: List<InetAddress>
+    private val subnetIp = mutableListOf<InetAddress>()
 
     companion object {
         fun show(callback: (InetSocketAddress) -> Unit) {
@@ -57,24 +57,45 @@ class ScanDeviceDialog(private var callback: (InetSocketAddress) -> Unit) : Scan
         tableResult.rowSelectionAllowed = false
         tableAdapter.setup(tableResult)
 
+        fieldThreadNum.text = Runtime.getRuntime().availableProcessors().toString()
+        labelProcessor.text = "Available Processors : ${fieldThreadNum.text}"
+        labelProgress.text = "Tap scan to start scan available device."
+
+        val networkInterfaces = NetworkInterface.getNetworkInterfaces()
+        while (networkInterfaces.hasMoreElements()) {
+            val n = networkInterfaces.nextElement()
+            if (n.isUp && n.interfaceAddresses.isNotEmpty() && n.name != "lo") {
+                comboBoxInterface.addItem("${n.index}-${n.name} ${n.displayName}")
+            }
+        }
         val localhost = InetAddress.getLocalHost()
-        val bitMask = NetworkInterface.getByInetAddress(localhost)
-                .interfaceAddresses[0].networkPrefixLength
-        subnetIp = DeviceManager.getAllSubnetIp(localhost)
+        comboBoxInterface.addItemListener {
+            if (comboBoxInterface.selectedIndex == 0){
+                initAddress(localhost)
+                return@addItemListener
+            }
+            val s = comboBoxInterface.selectedItem!!.toString()
+            val inface = NetworkInterface.getByIndex(s.split("-")[0].toInt())
+            initAddress(inface.interfaceAddresses[0].address)
+        }
+        initAddress(localhost)
+        buttonScan.onClick {
+            scan()
+        }
+    }
+
+    private fun initAddress(host:InetAddress) {
+
+        val bitMask = NetworkInterface.getByInetAddress(host)
+            .interfaceAddresses[0].networkPrefixLength
+        subnetIp.clear()
+        subnetIp.addAll(DeviceManager.getAllSubnetIp(host))
 
         fieldIpStart.text = (subnetIp.first().address[3].toLong() and 0xff).toString()
         fieldIpEnd.text = (subnetIp.last().address[3].toLong() and 0xff).toString()
         labelIpStart.text = subnetIp.first().hostAddress.removeSuffix(fieldIpStart.text)
         labelIpEnd.text = subnetIp.last().hostAddress.removeSuffix(fieldIpEnd.text)
-        labelIp.text = "${localhost.hostAddress}/${bitMask}"
-
-        fieldThreadNum.text = Runtime.getRuntime().availableProcessors().toString()
-        labelProcessor.text = "Available Processors : ${fieldThreadNum.text}"
-        labelProgress.text = "Tap scan to start scan available device."
-
-        buttonScan.onClick {
-            scan()
-        }
+        labelIp.text = "${subnetIp.first().hostAddress}/${bitMask}"
     }
 
     private var scanExecutor: ExecutorService? = null
@@ -93,11 +114,11 @@ class ScanDeviceDialog(private var callback: (InetSocketAddress) -> Unit) : Scan
                 tableData.clear()
                 tableAdapter.fireTableDataChanged()
                 scanExecutor = DeviceManager.scanAvailableDevicesLan(
-                        timeout = fieldTimeoutPing.text.toInt(),
-                        adbTimeout = filedTimeoutAdb.text.toInt(),
-                        threadPoolSize = fieldThreadNum.text.toInt(),
-                        ports = (fieldPortStart.text.toInt()..fieldPortEnd.text.toInt() step 1).toList(),
-                        scanIp = ips
+                    timeout = fieldTimeoutPing.text.toInt(),
+                    adbTimeout = filedTimeoutAdb.text.toInt(),
+                    threadPoolSize = fieldThreadNum.text.toInt(),
+                    ports = (fieldPortStart.text.toInt()..fieldPortEnd.text.toInt() step 1).toList(),
+                    scanIp = ips
                 ) { progress, message, ip ->
                     invokeLater {
                         labelProgress.text = "$progress%   $message"

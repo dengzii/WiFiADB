@@ -1,5 +1,6 @@
 package com.dengzii.plugin.adb.utils
 
+import java.io.File
 import java.util.concurrent.Executors
 
 /**
@@ -21,6 +22,37 @@ object AdbUtils {
         this.adb = adb ?: "adb"
     }
 
+    fun lookingForAdb(): Boolean {
+        if (isAdbAvailable()) {
+            return true
+        }
+        val username = System.getenv("USERNAME")
+        val os = System.getProperty("os.name").toLowerCase()
+        val sdkPath = when {
+            os.contains("windows") -> "C:\\Users\\$username\\AppData\\Local\\Android\\Sdk"
+            os.contains("linux") -> "/home/$username/Android/Sdk"
+            os.contains("mac") -> "/Users/$username/Library/Android/sdk"
+            else -> {
+                return false
+            }
+        }
+        val adbPath = sdkPath + "${File.separator}platform-tools${File.separator}adb.exe"
+
+        if (checkAdbPath(adbPath)) {
+            setAdbCommand(adbPath)
+            return true
+        }
+        return false
+    }
+
+    private fun checkAdbPath(path: String): Boolean {
+        val a = adb
+        setAdbCommand(path)
+        val r = isAdbAvailable()
+        setAdbCommand(a)
+        return r
+    }
+
     fun isAdbAvailable() = version().execute().output.contains("Android Debug Bridge")
 
     fun version() = getCommand("version")
@@ -36,13 +68,13 @@ object AdbUtils {
     fun killServer() = getCommand("kill-server", targeted = false)
 
     /**
-     * Retart adbd listening on TCP on port.
+     * Restart adbd listening on TCP on port.
      * @param port The port.
      */
     fun tcpIp(port: Int, serial: String? = null) = getCommand("tcpip $port", serial)
 
     /**
-     * Retart adbd listening on USB.
+     * Restart adbd listening on USB.
      */
     fun usb(serial: String? = null) = getCommand("usb", serial)
 
@@ -59,11 +91,11 @@ object AdbUtils {
      * @param preserveTimestampAndMode Whether preserve file timestamp and mode.
      */
     fun pull(
-            remotePath: String,
-            localPath: String,
-            compression: String? = null,
-            preserveTimestampAndMode: Boolean = true,
-            serial: String? = null
+        remotePath: String,
+        localPath: String,
+        compression: String? = null,
+        preserveTimestampAndMode: Boolean = true,
+        serial: String? = null
     ) = getCommand("pull" +
             (compression?.let { " -z $compression" } ?: " -Z") +
             " -a".takeOrEmpty(preserveTimestampAndMode) +
@@ -77,11 +109,11 @@ object AdbUtils {
      * @param sync If true, only push files that are newer on the host than the device
      */
     fun push(
-            remotePath: String,
-            localPath: String,
-            sync: Boolean = false,
-            compression: String? = null,
-            serial: String? = null
+        remotePath: String,
+        localPath: String,
+        sync: Boolean = false,
+        compression: String? = null,
+        serial: String? = null
     ) = getCommand("push" +
             " --sync".takeOrEmpty(sync) +
             (compression?.let { " -z $compression" } ?: " -Z") +
@@ -108,22 +140,26 @@ object AdbUtils {
      * @param port The device port, default is 5555.
      */
     fun connect(ip: String, port: Int? = 5555) =
-            getCommand("connect $ip${port?.let { ":$it" }.orEmpty()}", targeted = false)
+        getCommand("connect $ip${port?.let { ":$it" }.orEmpty()}", targeted = false)
 
     /**
      * Start recording screen.
      */
-    fun screenRecord(path: String = SCREEN_RECORD_PATH,
-                     timeLimitSecond: Long = SCREEN_RECORD_TIME_SECOND,
-                     bitRate: Long = SCREEN_RECORD_BIT_RATE,
-                     serial: String? = null) =
-            adbShell("screenrecord " +
+    fun screenRecord(
+        path: String = SCREEN_RECORD_PATH,
+        timeLimitSecond: Long = SCREEN_RECORD_TIME_SECOND,
+        bitRate: Long = SCREEN_RECORD_BIT_RATE,
+        serial: String? = null
+    ) =
+        adbShell(
+            "screenrecord " +
                     " --time-limit $timeLimitSecond" +
                     " --bit-rate $bitRate" +
-                    " --verbose $path", serial = serial)
+                    " --verbose $path", serial = serial
+        )
 
     fun screenCapture(path: String = SCREEN_CAP_PATH, serial: String? = null) =
-            adbShell("screencp $path", serial = serial)
+        adbShell("screencp $path", serial = serial)
 
     fun restartServer(): CmdUtils.CmdResult {
         var r = getCommand("kill-server", targeted = false).execute()
@@ -140,13 +176,13 @@ object AdbUtils {
      * @param useStdin Whether read from stdin.
      */
     fun adbShell(
-            cmd: String,
-            escape: String = "~",
-            useStdin: Boolean = true,
-            disablePtyAllocation: Boolean = false,
-            forcePtyAllocation: Boolean = false,
-            disableExitCode: Boolean = false,
-            serial: String? = null
+        cmd: String,
+        escape: String = "~",
+        useStdin: Boolean = true,
+        disablePtyAllocation: Boolean = false,
+        forcePtyAllocation: Boolean = false,
+        disableExitCode: Boolean = false,
+        serial: String? = null
     ) = getCommand("shell -e $escape ${"-n".takeOrEmpty(!useStdin)} $cmd", serial)
 
     fun getCommand(cmd: String, serial: String? = null, targeted: Boolean = true): ADBCommand {
