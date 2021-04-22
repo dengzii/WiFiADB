@@ -148,16 +148,7 @@
         </constraints>
         <properties/>
         <border type="none"/>
-        <children>
-          <component id="30ee" class="javax.swing.JLabel">
-            <constraints/>
-            <properties>
-              <font size="11"/>
-              <foreground color="-5723992"/>
-              <text value="Having a good day!"/>
-            </properties>
-          </component>
-        </children>
+        <children/>
       </grid>
     </children>
   </grid>

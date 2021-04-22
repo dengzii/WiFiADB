@@ -33,6 +33,10 @@ object DeviceManager {
 
     private fun isPortAvailable(port: String) = !USED_ADB_PORT.contains(port)
 
+    fun saveDevice(device: Device){
+        DEVICES_ALL[device.serial] = device
+    }
+
     fun getDeviceList(callback: (success: Boolean?, message: String, devices: List<Device>) -> Unit) {
 
         // clear exist device list

@@ -10,6 +10,8 @@ public class ConnectDialog extends JDialog implements Runnable {
     private JButton buttonCancel;
     private JTextField textFieldIp;
     private JTextField textFieldPort;
+    private JCheckBox saveToListWhenCheckBox;
+    private JLabel labelHint;
     private CallBack callBack;
 
     public ConnectDialog() {
@@ -17,18 +19,11 @@ public class ConnectDialog extends JDialog implements Runnable {
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
 
-        buttonOK.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onOK();
-            }
-        });
+        buttonOK.addActionListener(e -> onOK());
+        buttonCancel.addActionListener(e -> onCancel());
 
-        buttonCancel.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onCancel();
-            }
-        });
 
+        labelHint.setText("<html>Please ensure the ADB port is open, when disconnecting from debugging, the device may close the ADB port</html>");
         // call onCancel() when cross is clicked
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -38,16 +33,14 @@ public class ConnectDialog extends JDialog implements Runnable {
         });
 
         // call onCancel() on ESCAPE
-        contentPane.registerKeyboardAction(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onCancel();
-            }
-        }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        contentPane.registerKeyboardAction(e -> onCancel(),
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
 
     public static void main(String[] args) {
         ConnectDialog dialog = new ConnectDialog();
-        dialog.show((ip, port) -> {
+        dialog.show((s, ip, port) -> {
 
         });
         System.exit(0);
@@ -76,7 +69,7 @@ public class ConnectDialog extends JDialog implements Runnable {
         } catch (Exception ignored) {
 
         }
-        callBack.callBack(textFieldIp.getText(), port);
+        callBack.callBack(saveToListWhenCheckBox.isSelected(), textFieldIp.getText(), port);
         dispose();
     }
 
@@ -90,6 +83,6 @@ public class ConnectDialog extends JDialog implements Runnable {
     }
 
     interface CallBack {
-        void callBack(String ip, int port);
+        void callBack(boolean save, String ip, int port);
     }
 }

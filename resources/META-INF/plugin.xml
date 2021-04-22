@@ -3,7 +3,7 @@
     <id>com.dengzii.plugin.adb</id>
     <name>Android WiFiADB</name>
 
-    <version>3.6</version>
+    <version>3.7</version>
     <vendor email="dengzii@foxmail.com" url="https://github.com/dengzii">dengzi</vendor>
     <description><![CDATA[
 <h3>An AndroidStudio plugin use for connecting Android device over WiFi.</h3>
@@ -30,6 +30,10 @@
     ]]></description>
 
     <change-notes><![CDATA[
+      <b>3.7 (2021-04-22)</b><br>
+      1. feat(connect manual): save to list when connection fails.<br>
+      2. update(ui): optimize part of the UI.<br>
+
       <b>3.6 (2021-03-26)</b><br>
       1. feat(config adb): config adb path by file browser, try search most common adb locations.<br>
       2. feat(scan device): choose network interface support.<br>

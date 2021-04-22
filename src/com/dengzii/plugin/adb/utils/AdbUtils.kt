@@ -204,7 +204,7 @@ object AdbUtils {
     class ADBCommand(val cmd: String) {
 
         companion object {
-            private val EXECUTORS by lazy { Executors.newFixedThreadPool(4) }
+            private val EXECUTORS by lazy { Executors.newFixedThreadPool(8) }
         }
 
         fun execute(): CmdUtils.CmdResult {

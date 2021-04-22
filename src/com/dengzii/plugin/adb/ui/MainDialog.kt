@@ -10,6 +10,7 @@ import com.dengzii.plugin.adb.tools.ui.*
 import com.dengzii.plugin.adb.utils.AdbUtils
 import com.dengzii.plugin.adb.utils.DeviceManager
 
+
 /**
  * WiFiADB Tools main dialog.
  *
@@ -36,10 +37,6 @@ class MainDialog : MainDialogDesign() {
         }
         initDeviceTable()
         updateDevice()
-    }
-
-    private fun setHintLabel(status: String) {
-        labelStatus.text = status
     }
 
     @Synchronized
@@ -158,6 +155,7 @@ class MainDialog : MainDialogDesign() {
         if (wait) return
         wait = true
 
+        setHintLabel("Connecting...")
         DeviceManager.connectDevice(device) { success, message ->
             invokeLater {
                 setHintLabel(message)
@@ -175,6 +173,7 @@ class MainDialog : MainDialogDesign() {
         if (wait) return
         wait = true
 
+        setHintLabel("Disconnecting...")
         DeviceManager.disconnectDevice(device) { success, message ->
             invokeLater {
                 setHintLabel(message)
@@ -186,6 +185,10 @@ class MainDialog : MainDialogDesign() {
                 }
             }
         }
+    }
+
+    private fun setHintLabel(hint: String) {
+        labelStatus.text = "<html>$hint</html>"
     }
 
     private fun initMenuBar() {
@@ -202,16 +205,7 @@ class MainDialog : MainDialogDesign() {
                     buttonRefresh.doClick()
                 }
                 item("Connect Manual") {
-                    ConnectDialog().show { ip, port ->
-                        DeviceManager.connectDevice(ip, port) { b: Boolean, s: String ->
-                            if (b) {
-                                setHintLabel("Success, updating...")
-                                updateDevice()
-                            } else {
-                                setHintLabel("Failed, $s")
-                            }
-                        }
-                    }
+                    connectManual()
                 }
                 item("Scan Device [beta]") {
                     ScanDeviceDialog.show { address ->
@@ -262,23 +256,39 @@ class MainDialog : MainDialogDesign() {
                     updateDevice()
                 }
             }
-            menu("Connect Manual"){
+            menu("Connect Manual") {
                 onClick {
-                    ConnectDialog().show { ip, port ->
-                        DeviceManager.connectDevice(ip, port) { b: Boolean, s: String ->
-                            if (b) {
-                                setHintLabel("Success, updating...")
-                                updateDevice()
-                            } else {
-                                setHintLabel("Failed, $s")
-                            }
-                        }
-                    }
+                    connectManual()
                 }
             }
             menu("Help") {
                 item("About") {
                     AboutDialog.show_()
+                }
+            }
+        }
+    }
+
+    private fun connectManual() {
+        ConnectDialog().show { save, ip, port ->
+            setHintLabel("Connecting...")
+            DeviceManager.connectDevice(ip, port) { b: Boolean, s: String ->
+                if (b) {
+                    setHintLabel("Success, updating...")
+                    updateDevice()
+                } else {
+                    setHintLabel("Failed, $s")
+                    updateDevice()
+                    if (save) {
+                        val d = Device()
+                        d.serial = "unknown_$ip"
+                        d.ip = ip
+                        d.port = port.toString()
+                        d.model = "unknown"
+                        d.modelName = "unknown"
+                        d.status = Device.Status.DISCONNECTED
+                        DeviceManager.saveDevice(d)
+                    }
                 }
             }
         }
