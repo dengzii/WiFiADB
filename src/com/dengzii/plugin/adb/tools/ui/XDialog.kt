@@ -1,5 +1,6 @@
 package com.dengzii.plugin.adb.tools.ui
 
+import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.WindowStateService
 import java.awt.Point
@@ -8,7 +9,6 @@ import java.awt.Toolkit
 import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
-import javax.annotation.OverridingMethodsMustInvokeSuper
 import javax.swing.JComponent
 import javax.swing.JDialog
 import javax.swing.JPanel

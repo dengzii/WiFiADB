@@ -1,10 +1,12 @@
 package com.dengzii.plugin.adb
 
+import com.dengzii.plugin.adb.tools.CheckLicense
 import com.dengzii.plugin.adb.tools.NotificationUtils
 import com.dengzii.plugin.adb.ui.MainDialog
 import com.dengzii.plugin.adb.utils.AdbUtils
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import javax.swing.JOptionPane
 
 /**
  * <pre>
@@ -19,10 +21,16 @@ class MainAction : AnAction() {
 
     override fun actionPerformed(anActionEvent: AnActionEvent) {
 
-//        val adb = AndroidSdkUtils.getDebugBridge(anActionEvent.project!!)
-//        adb?.devices?.forEach {
-//            println(it.name)
-//        }
+        if (!CheckLicense.isLicensed()) {
+            JOptionPane.showMessageDialog(
+                JOptionPane.getRootFrame(),
+                "Unfortunately, you have not obtain the license yet.",
+                "Android WiFiADB",
+                JOptionPane.INFORMATION_MESSAGE
+            )
+            CheckLicense.requestLicense("Please register plugin!")
+        }
+
         AdbUtils.setAdbCommand(Config.loadAdbPath())
         try {
             val dialog = MainDialog()
