@@ -99,6 +99,9 @@ public class CheckLicense {
 
 
     public static boolean isLicensed() {
+        if (true) {
+            return true;
+        }
         final LicensingFacade facade = LicensingFacade.getInstance();
         if (facade == null) {
             return false;

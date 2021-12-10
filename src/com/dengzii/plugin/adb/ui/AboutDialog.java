@@ -17,6 +17,7 @@ public class AboutDialog extends JDialog {
     private JLabel rating;
     private JLabel sourceCode;
     private JLabel issue;
+    private JLabel labelFree;
 
     public static void show_() {
         Dialog dialog = new AboutDialog();
@@ -40,6 +41,7 @@ public class AboutDialog extends JDialog {
         setUrlEvent(rating, "https://plugins.jetbrains.com/plugin/13156-android-wifiadb");
         setUrlEvent(sourceCode, "https://github.com/dengzii/WiFiADB");
         setUrlEvent(issue, "https://github.com/dengzii/WiFiADB/issues");
+        setUrlEvent(labelFree, "https://github.com/dengzii/WiFiADB/releases");
     }
 
     private void setUrlEvent(JLabel label, String url) {

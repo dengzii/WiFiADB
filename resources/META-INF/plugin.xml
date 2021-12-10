@@ -1,13 +1,14 @@
 <idea-plugin url="https://github.com/dengzii/WiFiADB">
 
-    <id>com.dengzii.plugin.adb</id>
-    <name>Android WiFiADB</name>
+    <id>com.dengzii.plugin.adb.free</id>
+    <name>Android WiFiADB Free</name>
 
-    <product-descriptor code="PWIFIADB" release-date="20211130" release-version="20211"/>
-    <version>2021.1.1</version>
-    <vendor email="dengzii@foxmail.com" url="https://github.com/dengzii">dengzi</vendor>
+    <version>2021.1.2</version>
+    <vendor email="dengzii@foxmail.com" url="https://github.com/dengzii" >dengzi</vendor>
     <description><![CDATA[
 <h3>An AndroidStudio plugin use for connecting Android device over WiFi.</h3>
+
+<a href="https://github.com/dengzii/WiFiADB/releases">FREE VERSION</a>
 
 <b>Usage: </b>
 <p>- Please ensure your computer was configured adb in PATH.

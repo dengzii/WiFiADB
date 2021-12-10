@@ -5,10 +5,13 @@ import com.dengzii.plugin.adb.Device
 import com.dengzii.plugin.adb.DialogConfig
 import com.dengzii.plugin.adb.DialogConfig.ColumnEnum
 import com.dengzii.plugin.adb.XLog
+import com.dengzii.plugin.adb.tools.CheckLicense
 import com.dengzii.plugin.adb.tools.invokeLater
 import com.dengzii.plugin.adb.tools.ui.*
 import com.dengzii.plugin.adb.utils.AdbUtils
 import com.dengzii.plugin.adb.utils.DeviceManager
+import java.awt.Cursor
+import java.util.*
 
 
 /**
@@ -37,6 +40,8 @@ class MainDialog : MainDialogDesign() {
         }
         initDeviceTable()
         updateDevice()
+
+        checkLicense()
     }
 
     @Synchronized
@@ -112,7 +117,7 @@ class MainDialog : MainDialogDesign() {
         try {
             var markColIndex = -1
             tableAdapter.eachColumn { column, i ->
-                val col = ColumnEnum.valueOf(column.headerValue.toString().toUpperCase())
+                val col = ColumnEnum.valueOf(column.headerValue.toString().toUpperCase(Locale.getDefault()))
                 if (col == ColumnEnum.MARK) {
                     markColIndex = i
                 }
@@ -291,6 +296,18 @@ class MainDialog : MainDialogDesign() {
                     }
                 }
             }
+        }
+    }
+
+    private fun checkLicense() {
+        if (!CheckLicense.isLicensed()) {
+            labelLicense.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+            labelLicense.text = "You have not obtain the license yet. click to obtain license"
+            labelLicense.onClick {
+                CheckLicense.requestLicense("Register Plugin")
+            }
+        } else {
+            contentPane.remove(labelLicense)
         }
     }
 }

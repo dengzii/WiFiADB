@@ -10,6 +10,7 @@ public class MainDialogDesign extends XDialog {
     JTable deviceTable;
     JButton buttonRefresh;
     JLabel labelStatus;
+    JLabel labelLicense;
 
     MainDialogDesign() {
         super("WiFiADB Tools");
