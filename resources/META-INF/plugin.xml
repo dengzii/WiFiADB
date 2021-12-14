@@ -2,34 +2,28 @@
 
     <id>com.dengzii.plugin.adb</id>
     <name>Android WiFiADB</name>
-    <product-descriptor code="PWIFIADB" release-date="20211210" release-version="20212"/>
+    <product-descriptor code="PWIFIADB" release-date="20211213" release-version="20213"/>
 
-    <version>2021.1.2</version>
+    <version>2021.1.3</version>
     <vendor email="dengzii@foxmail.com" url="https://github.com/dengzii" >dengzi</vendor>
     <description><![CDATA[
-<h3>An AndroidStudio plugin use for connecting Android device over WiFi.</h3>
+<h3>Android Studio plugin that allows you to connect Android devices over WiFi.</h3>
 
-<a href="https://github.com/dengzii/WiFiADB/releases">FREE VERSION</a>
+<p><a href="https://github.com/dengzii/WiFiADB/releases">FREE VERSION</a></p>
 
 <b>Usage: </b>
 <p>- Please ensure your computer was configured adb in PATH.
-    verify it by typing command 'adb' in the terminal or cmd.
+    Then verify it by typing command 'adb' in the terminal or cmd.
     more about adb -><a href="https://developer.android.google.cn/studio/command-line/adb#top_of_page">
     Android Debug Bridge</a></p>
-<p>- Open WiFiADB tools from NavBar > Tools > WiFiADB, or use keyboard-shortcut Ctrl+Alt+2</p>
-<p>- Connecting your Android device to compute by USB, click Refresh button, you will see your device in table.
-    click connect, it will remember your device next time.</p>
-<p>- If you does not find your device, you can lookup the reason from MenuBar Tools > Log </p>
+<p>- Open WiFiADB tools from NavBar > Tools > WiFiADB, or use keyboard-shortcut Ctrl+Alt+2.</p>
+<p>- Connecting your Android device to compute by USB > click "Refresh" button > select "Connect". Keep in mind that it will remember your device next time.</p>
+<p>-  If it does not find your device, you can check the logs by going to MenuBar Tools > Log. </p>
 
 <b>Contribute</b>
-<p>Using WiFi connect android device help us get rid of the usb cable.
-    I had tried other similar tool, but they are not faultless, hope this tool will bring convenience to your work.</p>
+<p>Using WiFi connect android device help us get rid of the usb cable. I had tried other similar tool, but they are not faultless, hope this tool will bring convenience to your work.</p>
 <p>GitHub : <a href="https://github.com/dengzii/WiFiADB">WiFiADB</a></p>
-<p>Issue : if you have any questions, please <a href="https://github.com/dengzii/WiFiADB/issues"> create issue.</a></p>
-
-<b>Screenshot</b>
-<br><br>
-<img src="https://raw.githubusercontent.com/dengzii/WiFiADB/master/screen_shot/adb_wifi.png">
+<p>If you have any questions, please<a href="https://github.com/dengzii/WiFiADB/issues"> create issue.</a></p>
     ]]></description>
 
     <change-notes><![CDATA[
