@@ -4,7 +4,7 @@
     <name>Android WiFiADB</name>
     <product-descriptor code="PWIFIADB" release-date="20211213" release-version="20213"/>
 
-    <version>2021.1.3</version>
+    <version>2022.1.22</version>
     <vendor email="dengzii@foxmail.com" url="https://github.com/dengzii" >dengzi</vendor>
     <description><![CDATA[
 <h3>Android Studio plugin that allows you to connect Android devices over WiFi.</h3>
@@ -27,7 +27,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
-
+2022.1.22: fix some device failed obtain ip
     ]]>
     </change-notes>
 

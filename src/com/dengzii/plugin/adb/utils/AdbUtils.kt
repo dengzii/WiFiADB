@@ -183,7 +183,7 @@ object AdbUtils {
         forcePtyAllocation: Boolean = false,
         disableExitCode: Boolean = false,
         serial: String? = null
-    ) = getCommand("shell -e $escape ${"-n".takeOrEmpty(!useStdin)} $cmd", serial)
+    ) = getCommand("shell ${"-n".takeOrEmpty(!useStdin)} $cmd", serial)
 
     fun getCommand(cmd: String, serial: String? = null, targeted: Boolean = true): ADBCommand {
         val pSerial = if (targeted) {
