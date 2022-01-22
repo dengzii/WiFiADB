@@ -1,8 +1,7 @@
 <idea-plugin url="https://github.com/dengzii/WiFiADB">
 
-    <id>com.dengzii.plugin.adb</id>
+    <id>com.dengzii.plugin.adb.free</id>
     <name>Android WiFiADB</name>
-    <product-descriptor code="PWIFIADB" release-date="20211213" release-version="20213"/>
 
     <version>2022.1.22</version>
     <vendor email="dengzii@foxmail.com" url="https://github.com/dengzii" >dengzi</vendor>
