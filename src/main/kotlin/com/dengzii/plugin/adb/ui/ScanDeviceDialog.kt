@@ -113,28 +113,28 @@ class ScanDeviceDialog(private var callback: (InetSocketAddress) -> Unit) : Scan
             "Scan" -> {
                 tableData.clear()
                 tableAdapter.fireTableDataChanged()
-                scanExecutor = DeviceManager.scanAvailableDevicesLan(
-                    timeout = fieldTimeoutPing.text.toInt(),
-                    adbTimeout = filedTimeoutAdb.text.toInt(),
-                    threadPoolSize = fieldThreadNum.text.toInt(),
-                    ports = (fieldPortStart.text.toInt()..fieldPortEnd.text.toInt() step 1).toList(),
-                    scanIp = ips
-                ) { progress, message, ip ->
-                    invokeLater {
-                        labelProgress.text = "$progress%   $message"
-                        if (ip.isNotEmpty() && !tableInUpdate.getAndSet(true)) {
-                            tableData.clear()
-                            ip.forEach {
-                                tableData.add(mutableListOf("${it.address.hostAddress}:${it.port}", it))
-                            }
-                            tableAdapter.fireTableDataChanged()
-                            tableInUpdate.set(false)
-                        }
-                        if (progress == 100) {
-                            buttonScan.text = "Scan"
-                        }
-                    }
-                }
+//                scanExecutor = DeviceManager.scanAvailableDevicesLan(
+//                    timeout = fieldTimeoutPing.text.toInt(),
+//                    adbTimeout = filedTimeoutAdb.text.toInt(),
+//                    threadPoolSize = fieldThreadNum.text.toInt(),
+//                    ports = (fieldPortStart.text.toInt()..fieldPortEnd.text.toInt() step 1).toList(),
+//                    scanIp = ips
+//                ) { progress, message, ip ->
+//                    invokeLater {
+//                        labelProgress.text = "$progress%   $message"
+//                        if (ip.isNotEmpty() && !tableInUpdate.getAndSet(true)) {
+//                            tableData.clear()
+//                            ip.forEach {
+//                                tableData.add(mutableListOf("${it.address.hostAddress}:${it.port}", it))
+//                            }
+//                            tableAdapter.fireTableDataChanged()
+//                            tableInUpdate.set(false)
+//                        }
+//                        if (progress == 100) {
+//                            buttonScan.text = "Scan"
+//                        }
+//                    }
+//                }
                 buttonScan.text = "Stop"
             }
             "Stop" -> {

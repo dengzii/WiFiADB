@@ -1,6 +1,5 @@
 package com.dengzii.plugin.adb.tools.ui
 
-import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JMenu
 import javax.swing.JMenuItem

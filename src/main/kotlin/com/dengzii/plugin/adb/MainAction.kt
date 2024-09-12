@@ -1,12 +1,10 @@
 package com.dengzii.plugin.adb
 
-import com.dengzii.plugin.adb.tools.CheckLicense
 import com.dengzii.plugin.adb.tools.NotificationUtils
 import com.dengzii.plugin.adb.ui.MainDialog
 import com.dengzii.plugin.adb.utils.AdbUtils
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import javax.swing.JOptionPane
 
 /**
  * <pre>

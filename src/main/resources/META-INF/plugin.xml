@@ -2,12 +2,12 @@
 
     <id>com.dengzii.plugin.adb</id>
     <name>Android WiFiADB</name>
-    <product-descriptor code="PWIFIADB" release-date="20211213" release-version="20213"/>
+<!--    <product-descriptor code="PWIFIADB" release-date="20211213" release-version="20213"/>-->
 
-    <version>2022.1.22</version>
-    <vendor email="dengzii@foxmail.com" url="https://github.com/dengzii" >dengzi</vendor>
+    <version>2024.9.1</version>
+    <vendor email="dengzii@gmail.com" url="https://github.com/dengzii" >dengzi</vendor>
     <description><![CDATA[
-<h3>Android Studio plugin that allows you to connect Android devices over WiFi.</h3>
+<h3>Android Studio plugin that allows you to connect Android devices over Wi-Fi.</h3>
 
 <p><a href="https://github.com/dengzii/WiFiADB/releases">FREE VERSION</a></p>
 
@@ -21,7 +21,7 @@
 <p>-  If it does not find your device, you can check the logs by going to MenuBar Tools > Log. </p>
 
 <b>Contribute</b>
-<p>Using WiFi connect android device help us get rid of the usb cable. I had tried other similar tool, but they are not faultless, hope this tool will bring convenience to your work.</p>
+<p>Using Wi-Fi connect android device help us get rid of the usb cable. I had tried other similar tool, but they are not faultless, hope this tool will bring convenience to your work.</p>
 <p>GitHub : <a href="https://github.com/dengzii/WiFiADB">WiFiADB</a></p>
 <p>If you have any questions, please<a href="https://github.com/dengzii/WiFiADB/issues"> create issue.</a></p>
     ]]></description>
@@ -32,14 +32,11 @@
     </change-notes>
 
     <idea-version since-build="183.4284.148"/>
-
-    <depends>com.intellij.modules.java</depends>
-
     <extensions defaultExtensionNs="com.intellij">
     </extensions>
 
     <actions>
-        <action id="com.dengzii.plugin.adb.MainAction" class="com.dengzii.plugin.adb.MainAction" text="WiFiADB"
+        <action id="main.kotlin.com.dengzii.plugin.adb.MainAction" class="com.dengzii.plugin.adb.MainAction" text="WiFiADB"
                 description="Connect android device over wifi">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt 2"/>

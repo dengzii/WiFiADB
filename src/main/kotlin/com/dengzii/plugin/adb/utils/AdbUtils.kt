@@ -19,7 +19,7 @@ object AdbUtils {
     private var adb = "adb"
 
     fun setAdbCommand(adb: String?) {
-        this.adb = adb ?: "adb"
+        AdbUtils.adb = adb ?: "adb"
     }
 
     fun lookingForAdb(): Boolean {

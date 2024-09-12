@@ -14,7 +14,14 @@ import com.google.gson.Gson
 
 class DialogConfig {
 
-    var col = mutableListOf(ColumnEnum.SN, ColumnEnum.NAME, ColumnEnum.IP, ColumnEnum.PORT, ColumnEnum.STATUS, ColumnEnum.OPERATE)
+    var col = mutableListOf(
+        ColumnEnum.SN,
+        ColumnEnum.NAME,
+        ColumnEnum.IP,
+        ColumnEnum.PORT,
+        ColumnEnum.STATUS,
+        ColumnEnum.OPERATE
+    )
     var colWidth = mutableMapOf(Pair("default", -1))
 
     companion object {

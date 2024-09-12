@@ -3,7 +3,6 @@ package com.dengzii.plugin.adb.tools.ui
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.util.ui.JBUI
 import java.awt.Dimension

@@ -3,7 +3,6 @@ package com.dengzii.plugin.adb.utils
 import com.dengzii.plugin.adb.Config
 import com.dengzii.plugin.adb.Device
 import com.dengzii.plugin.adb.XLog
-import org.apache.commons.net.telnet.TelnetClient
 import java.net.*
 import java.util.*
 import java.util.concurrent.*
@@ -130,88 +129,88 @@ object DeviceManager {
         }
     }
 
-    fun touchDevice(ip: String, listener: (available: Boolean, msg: String) -> Unit) {
-        Thread {
-            val inetAddress = InetAddress.getByName(ip)
-            try {
-                inetAddress.isReachable(1000)
-            } catch (e: java.lang.Exception) {
-                listener.invoke(false, "host $ip is unreachable.")
-                return@Thread
-            }
-            val telnetClient = TelnetClient()
-            telnetClient.connectTimeout = 1000
-            for (p in 5555..5561 step 1) {
-                try {
-                    telnetClient.connect(inetAddress, p)
-                    listener.invoke(true, "${ip}:$p is available.")
-                    return@Thread
-                } catch (e: java.lang.Exception) {
-
-                }
-            }
-            listener.invoke(false, "the adb tcp/ip port is closed.")
-        }.start()
-    }
+//    fun touchDevice(ip: String, listener: (available: Boolean, msg: String) -> Unit) {
+//        Thread {
+//            val inetAddress = InetAddress.getByName(ip)
+//            try {
+//                inetAddress.isReachable(1000)
+//            } catch (e: java.lang.Exception) {
+//                listener.invoke(false, "host $ip is unreachable.")
+//                return@Thread
+//            }
+//            val telnetClient = TelnetClient()
+//            telnetClient.connectTimeout = 1000
+//            for (p in 5555..5561 step 1) {
+//                try {
+//                    telnetClient.connect(inetAddress, p)
+//                    listener.invoke(true, "${ip}:$p is available.")
+//                    return@Thread
+//                } catch (e: java.lang.Exception) {
+//
+//                }
+//            }
+//            listener.invoke(false, "the adb tcp/ip port is closed.")
+//        }.start()
+//    }
 
     private val scanned = AtomicInteger(0)
     private val scanDeviceIpList = Vector<InetSocketAddress>()
 
-    fun scanAvailableDevicesLan(
-            timeout: Int = 2000,
-            adbTimeout: Int = 1000,
-            ports: List<Int> = listOf(5555, 5557, 5559),
-            threadPoolSize: Int = Runtime.getRuntime().availableProcessors() * 2,
-            scanIp: List<InetAddress>? = null,
-            callback: (progress: Int, message: String, ip: List<InetSocketAddress>) -> Unit
-    ): ExecutorService {
-        val executor = Executors.newFixedThreadPool(threadPoolSize)
-        val subnetIp = scanIp ?: getAllSubnetIp(InetAddress.getLocalHost())
-        val availableIpSize = subnetIp.size
-        scanned.set(0)
-        scanDeviceIpList.clear()
-        val telnetClient = TelnetClient()
-        telnetClient.connectTimeout = adbTimeout
-        val logBuilder = StringBuffer()
-        callback.invoke(0, "scanning...", emptyList())
-        subnetIp.forEach { inetAddress ->
-            executor.submit {
-                if (Thread.interrupted()) {
-                    return@submit
-                }
-                val reachable = inetAddress.isReachable(timeout)
-                var msg = ""
-                if (reachable) {
-                    var s = "${inetAddress.hostAddress} "
-                    for (i in ports) {
-                        try {
-                            msg = "${inetAddress.hostAddress}:${i}"
-                            s = s.plus("$i ")
-                            val socketAddress = InetSocketAddress(inetAddress.hostAddress, i)
-                            telnetClient.connect(inetAddress, i)
-                            scanDeviceIpList.add(socketAddress)
-                            break
-                        } catch (e: Exception) {
-                        }
-                    }
-                    logBuilder.append("${s}\n")
-                } else {
-                    msg = "${inetAddress.hostAddress} is unreachable."
-                }
-                val progress = (scanned.incrementAndGet().toFloat() / availableIpSize.toFloat()) * 100
-                if (scanned.get() >= availableIpSize) {
-                    msg = "scan finish, ${scanDeviceIpList.size} device may available."
-                    XLog.d(logBuilder.toString())
-                    callback.invoke(progress.toInt(), msg, scanDeviceIpList)
-                    executor.shutdownNow()
-                }
-                if (!Thread.interrupted()) {
-                    callback.invoke(progress.toInt(), msg, scanDeviceIpList)
-                }
-            }
-        }
-        return executor
-    }
+//    fun scanAvailableDevicesLan(
+//            timeout: Int = 2000,
+//            adbTimeout: Int = 1000,
+//            ports: List<Int> = listOf(5555, 5557, 5559),
+//            threadPoolSize: Int = Runtime.getRuntime().availableProcessors() * 2,
+//            scanIp: List<InetAddress>? = null,
+//            callback: (progress: Int, message: String, ip: List<InetSocketAddress>) -> Unit
+//    ): ExecutorService {
+//        val executor = Executors.newFixedThreadPool(threadPoolSize)
+//        val subnetIp = scanIp ?: getAllSubnetIp(InetAddress.getLocalHost())
+//        val availableIpSize = subnetIp.size
+//        scanned.set(0)
+//        scanDeviceIpList.clear()
+//        val telnetClient = TelnetClient()
+//        telnetClient.connectTimeout = adbTimeout
+//        val logBuilder = StringBuffer()
+//        callback.invoke(0, "scanning...", emptyList())
+//        subnetIp.forEach { inetAddress ->
+//            executor.submit {
+//                if (Thread.interrupted()) {
+//                    return@submit
+//                }
+//                val reachable = inetAddress.isReachable(timeout)
+//                var msg = ""
+//                if (reachable) {
+//                    var s = "${inetAddress.hostAddress} "
+//                    for (i in ports) {
+//                        try {
+//                            msg = "${inetAddress.hostAddress}:${i}"
+//                            s = s.plus("$i ")
+//                            val socketAddress = InetSocketAddress(inetAddress.hostAddress, i)
+//                            telnetClient.connect(inetAddress, i)
+//                            scanDeviceIpList.add(socketAddress)
+//                            break
+//                        } catch (e: Exception) {
+//                        }
+//                    }
+//                    logBuilder.append("${s}\n")
+//                } else {
+//                    msg = "${inetAddress.hostAddress} is unreachable."
+//                }
+//                val progress = (scanned.incrementAndGet().toFloat() / availableIpSize.toFloat()) * 100
+//                if (scanned.get() >= availableIpSize) {
+//                    msg = "scan finish, ${scanDeviceIpList.size} device may available."
+//                    XLog.d(logBuilder.toString())
+//                    callback.invoke(progress.toInt(), msg, scanDeviceIpList)
+//                    executor.shutdownNow()
+//                }
+//                if (!Thread.interrupted()) {
+//                    callback.invoke(progress.toInt(), msg, scanDeviceIpList)
+//                }
+//            }
+//        }
+//        return executor
+//    }
 
     fun getAllSubnetIp(inetAddress: InetAddress): List<InetAddress> {
         val address = inetAddress.address

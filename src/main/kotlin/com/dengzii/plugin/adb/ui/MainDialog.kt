@@ -8,6 +8,8 @@ import com.dengzii.plugin.adb.XLog
 import com.dengzii.plugin.adb.tools.CheckLicense
 import com.dengzii.plugin.adb.tools.invokeLater
 import com.dengzii.plugin.adb.tools.ui.*
+import com.dengzii.plugin.adb.ui.*
+import com.dengzii.plugin.adb.tools.ui.*
 import com.dengzii.plugin.adb.utils.AdbUtils
 import com.dengzii.plugin.adb.utils.DeviceManager
 import java.awt.Cursor
